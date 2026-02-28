@@ -1,0 +1,8 @@
+<Solution>
+  <Project Path="EduManager.Api/EduManager.Api.csproj" />
+  <Project Path="EduManager.AppHost/EduManager.AppHost.csproj" />
+  <Project Path="EduManager.Application/EduManager.Application.csproj" />
+  <Project Path="EduManager.Domain/EduManager.Domain.csproj" />
+  <Project Path="EduManager.Infrastructure/EduManager.Infrastructure.csproj" />
+  <Project Path="EduManager.ServiceDefaults/EduManager.ServiceDefaults.csproj" />
+</Solution>

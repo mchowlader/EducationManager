@@ -1,0 +1,25 @@
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Design;
+using Microsoft.Extensions.Configuration;
+
+namespace EduManager.Infrastructure.Persistence;
+
+public class EduDbContextFactory : IDesignTimeDbContextFactory<EduDbContext>
+{
+    public EduDbContext CreateDbContext(string[] args)
+    {
+        // Load appsettings.json
+        var configuration = new ConfigurationBuilder()
+            .SetBasePath(Directory.GetCurrentDirectory()) // project root
+            .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+            .Build();
+
+        // Fetch a default/fake tenant connection string from config
+        var connectionString = configuration.GetConnectionString("DefaultTenantConnection");
+
+        var optionsBuilder = new DbContextOptionsBuilder<EduDbContext>();
+        optionsBuilder.UseSqlServer(connectionString);
+
+        return new EduDbContext(optionsBuilder.Options);
+    }
+}
