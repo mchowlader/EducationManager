@@ -34,8 +34,8 @@ public abstract class BaseEndPoints<TEntity, TCreateDto, TUpdateDto, TResponseDt
             .RequireAuthorization(ViewPermission);
 
         group.MapPost("/", CreateHandler)
-            .WithName($"Create{EntityName}")
-            .RequireAuthorization(CreatePermission);
+            .WithName($"Create{EntityName}");
+            //.RequireAuthorization(CreatePermission);
 
         group.MapPut("/{id:long}", UpdateHandler)
             .WithName($"Update{EntityName}")

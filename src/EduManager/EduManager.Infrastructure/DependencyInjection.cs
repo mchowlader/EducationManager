@@ -1,9 +1,9 @@
 ﻿using EduManager.Application.Interfaces;
 using EduManager.Domain.Constants;
+using EduManager.Domain.Enums;
 using EduManager.Domain.Interfaces;
 using EduManager.Infrastructure.Identity;
 using EduManager.Infrastructure.Persistence;
-using EduManager.Infrastructure.Repositories;
 using EduManager.Infrastructure.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
@@ -11,10 +11,10 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using EduManager.Infrastructure.Repositories;
+
 
 namespace EduManager.Infrastructure;
 
@@ -31,10 +31,10 @@ public static class DependencyInjection
             var masterDB = provider.GetRequiredService<MasterDbContext>();
 
             var tenantSlug = httpContext?.Request?.Host.Host.Split(':')[0] ?? string.Empty;
-            var tenant = masterDB.Tenants.FirstOrDefault(t => t.Slug == tenantSlug && t.IsActive);
+            var tenant = masterDB.Tenants.FirstOrDefault(t => t.Slug == tenantSlug && t.Status == TenantStatus.Active);
             var optionsBuilder = new DbContextOptionsBuilder<EduDbContext>();
 
-            if(tenant is null)
+            if (tenant is null)
             {
                 //var logger = provider.GetRequiredService<ILogger<EduDbContext>>();
                 //logger.LogWarning("Tenant '{TenantSlug}' not found.", tenantSlug);
@@ -42,18 +42,19 @@ public static class DependencyInjection
                 optionsBuilder.UseInMemoryDatabase("TenantMissing");
                 return new EduDbContext(optionsBuilder.Options);
             }
-              
+
             optionsBuilder.UseSqlServer(tenant.ConnectionString);
 
             return new EduDbContext(optionsBuilder.Options);
         });
 
         services.AddScoped<IUnitOfWork, UnitOfWork>();
-        services.AddScoped(typeof(IRepository<>), typeof(BaseRepository<>));
+        services.AddScoped(typeof(IRepository<>), typeof(BaseRepository<,>));
+
         services.AddScoped<ITokenService, TokenService>();
         services.AddScoped<ITenantService, TenantService>();
         services.AddSingleton<IAuthorizationHandler, PermissionHandler>();
-
+        services.AddSingleton<IEncryptionService, EncryptionService>();
         services.AddHttpContextAccessor();
         services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         .AddJwtBearer(options =>
@@ -79,7 +80,7 @@ public static class DependencyInjection
             .Select(f => f.GetValue(null)?.ToString())
             .Where(p => p is not null);
 
-            foreach(var permission in permissions)
+            foreach (var permission in permissions)
             {
                 opt.AddPolicy(permission!, policy => policy.Requirements.Add(new PermissionRequirement(permission!)));
             }

@@ -7,8 +7,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Enums\" />
     <Folder Include="Exceptions\" />
+    <Folder Include="Interfaces\Persistence\" />
+    <Folder Include="Interfaces\Services\" />
   </ItemGroup>
 
 </Project>

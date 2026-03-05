@@ -1,11 +1,13 @@
 ﻿using EduManager.Domain.Common;
 using EduManager.Domain.Interfaces;
-using EduManager.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
 namespace EduManager.Infrastructure.Repositories;
 
-public class BaseRepository<T>(EduDbContext context) : IRepository<T>where T : BaseEntity
+public class BaseRepository<T, TContext>(TContext context)
+    : IRepository<T>
+    where T : BaseEntity
+    where TContext : DbContext
 {
     protected readonly DbSet<T> DbSet = context.Set<T>();
 
@@ -17,7 +19,7 @@ public class BaseRepository<T>(EduDbContext context) : IRepository<T>where T : B
 
     public async Task<IEnumerable<T>> GetAllAsync(int pageNumber, int pageSize, CancellationToken cancellationToken = default) =>
         await DbSet
-            .Skip((pageNumber-1) * pageSize)
+            .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync(cancellationToken);
 

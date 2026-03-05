@@ -58,10 +58,10 @@ public class EduDbContext : DbContext
         return Expression.Lambda(body, param);
     }
 
-    public DbSet<Classes> Classes { get; set; }
-    public DbSet<Permission> Permissions { get; set; }
-    public DbSet<Role> Roles { get; set; }
-    public DbSet<RolePermission> RolePermissions { get; set; }
-    public DbSet<User> Users { get; set; }
-    public DbSet<UserRole> UserRoles { get; set; }
+    public DbSet<Classes> Classes => Set<Classes>();
+    public DbSet<Permission> Permissions => Set<Permission>();
+    public DbSet<Role> Roles => Set<Role>();
+    public DbSet<RolePermission> RolePermissions => Set<RolePermission>();
+    public DbSet<User> Users => Set<User>();
+    public DbSet<UserRole> UserRoles => Set<UserRole>();
 }

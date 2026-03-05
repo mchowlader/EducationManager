@@ -17,11 +17,26 @@ public class TenantConfiguration
             .HasMaxLength(100)
             .IsRequired();
 
-        builder.HasIndex(x => x.Slug)
-            .IsUnique();
+        builder.Property(x => x.Email)
+            .HasMaxLength(200)
+            .IsRequired();
+
+        builder.Property(x => x.Mobile)
+            .HasMaxLength(20)
+            .IsRequired();
 
         builder.Property(x => x.ConnectionString)
             .HasMaxLength(500)
             .IsRequired();
+
+        #region Index
+        builder.HasIndex(x => x.Id);
+        builder.HasIndex(x => x.Slug)
+            .IsUnique();
+        builder.HasIndex(x => x.Email)
+            .IsUnique();
+        builder.HasIndex(x => x.Mobile)
+            .IsUnique();
+        #endregion
     }
 }

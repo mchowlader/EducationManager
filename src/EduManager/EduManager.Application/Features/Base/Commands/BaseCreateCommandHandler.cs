@@ -5,28 +5,37 @@ using MediatR;
 
 namespace EduManager.Application.Features.Base.Commands;
 
-public class BaseCreateCommandHandler<TEntity, TCreateDto, TResponseDto>(
-    IRepository<TEntity> repository,
-    IUnitOfWork unitOfWork,
-    IMapper mapper)
+public class BaseCreateCommandHandler<TEntity, TCreateDto, TResponseDto>
     : IRequestHandler<BaseCreateCommand<TEntity, TCreateDto, TResponseDto>, Result<TResponseDto>>
     where TEntity : BaseEntity, new()
     where TCreateDto : class
     where TResponseDto : class
 {
+    private readonly IRepository<TEntity> _repository;
+    private readonly IUnitOfWork _unitOfWork;
+    private readonly IMapper _mapper;
+
+    public BaseCreateCommandHandler(IRepository<TEntity> repository, IUnitOfWork unitOfWork, IMapper mapper)
+    {
+        _repository = repository;
+        _unitOfWork = unitOfWork;
+        _mapper = mapper;
+    }
+
+
     public async Task<Result<TResponseDto>> Handle(BaseCreateCommand<TEntity, TCreateDto, TResponseDto> request, CancellationToken cancellationToken)
     {
         try
         {
-            var entity = mapper.Map<TEntity>(request.Dto);
+            var entity = _mapper.Map<TEntity>(request.Dto);
 
-            await repository.AddAsync(entity, cancellationToken);
-            var result = await unitOfWork.SaveChangesAsync(cancellationToken);
+            await _repository.AddAsync(entity, cancellationToken);
+            var result = await _unitOfWork.SaveChangesAsync(cancellationToken);
 
             if (result <= 0)
                 return Result<TResponseDto>.Failure($"{typeof(TEntity).Name} Failed to create");
 
-            var data = mapper.Map<TResponseDto>(entity);
+            var data = _mapper.Map<TResponseDto>(entity);
 
             return Result<TResponseDto>.Success(data, $"{typeof(TEntity).Name}  Created successfully");
         }
