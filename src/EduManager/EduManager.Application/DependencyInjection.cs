@@ -1,8 +1,5 @@
-﻿using AutoMapper;
-using EduManager.Application.Features.Base.Commands;
-using EduManager.Application.Features.Base.Queries;
+﻿using EduManager.Application.Features.Base.Commands;
 using FluentValidation;
-using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace EduManager.Application;
@@ -14,7 +11,7 @@ public static class DependencyInjection
         services.AddMediatR(cfg =>
             cfg.RegisterServicesFromAssembly(typeof(DependencyInjection).Assembly));
 
-        services.AddAutoMapper(typeof(DependencyInjection).Assembly); 
+        services.AddAutoMapper(cfg => { }, typeof(DependencyInjection).Assembly);
 
         services.AddValidatorsFromAssembly(typeof(DependencyInjection).Assembly);
 

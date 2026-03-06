@@ -70,6 +70,7 @@ public static class DependencyInjection
         //Service
         services.AddScoped<ITokenService, TokenService>();
         services.AddScoped<ITenantService, TenantService>();
+
         //Jobs
         services.AddScoped<ITenantCreationJob, TenantCreationJob>();
         services.AddSingleton<IAuthorizationHandler, PermissionHandler>();
