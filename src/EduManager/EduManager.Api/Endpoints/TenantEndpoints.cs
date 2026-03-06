@@ -34,6 +34,7 @@ public class TenantEndpoints : IEndpoints
             .MapToApiVersion(1, 0);
 
         group.MapGet("/", GetAllTenantHandlerV1)
+           .RequireRateLimiting("strict")
            .WithName("GetAllTenantV1")
            .WithSummary("Gat All Tenants")
            .WithDescription("Returns a paginated list of all tenants. Use pageNumber and pageSize to control pagination.")

@@ -57,7 +57,6 @@ public class TenantCreationJob(
 
         await _unitOfWork.SaveChangesAsync();
     }
-
     private async Task<bool> CreateDatabaseAsync(string slug)
     {
         var dbName = $"EduManager_{slug}";
@@ -75,7 +74,6 @@ public class TenantCreationJob(
         await cmd.ExecuteNonQueryAsync();
         return true;
     }
-
     private async Task<bool> ApplyMigrationsAsync(string connectionString)
     {
         var optionBuilder = new DbContextOptionsBuilder<EduDbContext>();
@@ -85,7 +83,6 @@ public class TenantCreationJob(
         await context.Database.MigrateAsync();
         return true;
     }
-
     private async Task<DbUserResult> CreateDatabaseUserAsync(string slug, string connectionString)
     {
         var userName = $"edu_{slug}_user";
@@ -114,14 +111,12 @@ public class TenantCreationJob(
 
         return new DbUserResult(true, userName, password);
     }
-
     private async Task UpdateStatusAsync(Tenant tenant, TenantStatus status)
     {
         tenant.Status = status;
         _repository.Update(tenant);
         await _unitOfWork.SaveChangesAsync();
     }
-
     private string BuildSuperAdminConnectionString(string slug)
     {
         var masterConn = _configuration.GetConnectionString("MasterDBConnection")!;
@@ -131,7 +126,6 @@ public class TenantCreationJob(
     }
     private string BuildIsolatedConnectionString(string slug, string user, string password) =>
          $"Server = .; Database=EduManager_{slug}; user={user}; password={password}; Trusted_Connection=True; TrustServerCertificate=True ";
-
     private static string GeneratePassword()
     {
         const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";

@@ -3,9 +3,10 @@ using Asp.Versioning.ApiExplorer;
 using EduManager.Api.Extensions;
 using EduManager.Api.Middleware;
 using EduManager.Application;
+using EduManager.Domain.Common;
 using EduManager.Infrastructure;
 using Serilog;
-using Serilog.Sinks.MSSqlServer;
+using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,7 +17,7 @@ Log.Logger = new LoggerConfiguration()
 builder.Host.UseSerilog();
 
 builder.Services
-.AddApiVersioning(opt => 
+.AddApiVersioning(opt =>
 {
     opt.DefaultApiVersion = new ApiVersion(1, 0);
     opt.AssumeDefaultVersionWhenUnspecified = true;
@@ -33,9 +34,50 @@ builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.AddServiceDefaults();
 
+builder.Services.AddRateLimiter(option =>
+{
+    option.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    option.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(context =>
+    {
+        var clientIP = context.Connection.RemoteIpAddress?.ToString() ?? "unknow";
+
+        return RateLimitPartition.GetFixedWindowLimiter(clientIP, _ =>
+            new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 100,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0
+            });
+    });
+
+    option.AddPolicy("strict", context =>
+    {
+        var clientIp = context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+        return RateLimitPartition.GetFixedWindowLimiter(clientIp, _ =>
+            new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 5,         
+                Window = TimeSpan.FromMinutes(1),  
+                QueueLimit = 0
+            });
+    });
+
+    option.OnRejected = async(context, CancellationToken) =>
+    {
+        context.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
+        context.HttpContext.Response.ContentType = "application/json";
+
+        var response = ApiResponse<object>.Failure("Too many requests. Please try again later.");
+        await context.HttpContext.Response.WriteAsJsonAsync(response);
+    };
+});
+
+
+
 var app = builder.Build();
 app.UseSerilogRequestLogging();
 app.UseMiddleware<GlobalExceptionMiddleware>();
+app.UseRateLimiter();
 app.MapDefaultEndpoints();
 
 // Configure the HTTP request pipeline.
