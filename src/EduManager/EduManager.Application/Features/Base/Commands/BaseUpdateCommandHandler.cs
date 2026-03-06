@@ -16,25 +16,18 @@ public class BaseUpdateCommandHandler<TEntity, TUpdateDto, TResponseDto>(
 {
     public async Task<Result<TResponseDto>> Handle(BaseUpdateCommand<TEntity, TUpdateDto, TResponseDto> request, CancellationToken cancellationToken)
     {
-        try
-        {
-            var entity = await repository.GetByIdAsync(request.Id, cancellationToken);
+        var entity = await repository.GetByIdAsync(request.Id, cancellationToken);
 
-            if (entity is null)
-                return Result<TResponseDto>.Failure($"{typeof(TEntity).Name} not found");
+        if (entity is null)
+            return Result<TResponseDto>.Failure($"{typeof(TEntity).Name} not found");
 
-            mapper.Map(request.Dto, entity);
+        mapper.Map(request.Dto, entity);
 
-            repository.Update(entity);
-            await unitOfWork.SaveChangesAsync(cancellationToken);
+        repository.Update(entity);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
 
-            var data = mapper.Map<TResponseDto>(entity);
+        var data = mapper.Map<TResponseDto>(entity);
 
-            return Result<TResponseDto>.Success(data, $"{typeof(TEntity).Name} updated successfully");
-        }
-        catch (Exception)
-        {
-            return Result<TResponseDto>.Failure($"Internal Server Error");
-        }
+        return Result<TResponseDto>.Success(data, $"{typeof(TEntity).Name} updated successfully");
     }
 }

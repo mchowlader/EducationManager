@@ -1,0 +1,5 @@
+# Migration
+Add-Migration AddLogsTable -Context MasterDbContext -OutputDir Persistence/Migrations/Master
+
+# Update
+Update-Database -Context MasterDbContext

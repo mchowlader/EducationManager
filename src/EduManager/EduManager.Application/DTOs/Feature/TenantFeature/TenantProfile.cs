@@ -5,7 +5,7 @@ namespace EduManager.Application.DTOs.Feature.TenantFeature;
 
 public class TenantProfile : Profile
 {
-    protected TenantProfile()
+    public TenantProfile()
     {
         CreateMap<CreateTenantDto, Tenant>();
         CreateMap<Tenant, TenantResponseDto>();

@@ -4,6 +4,7 @@ using EduManager.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EduManager.Infrastructure.Persistence.Migrations.Master
 {
     [DbContext(typeof(MasterDbContext))]
-    partial class MasterDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260306115700_AddLogsTable")]
+    partial class AddLogsTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -80,10 +83,6 @@ namespace EduManager.Infrastructure.Persistence.Migrations.Master
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
-                    b.Property<string>("ErrorCode")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
                     b.Property<string>("Exception")
                         .HasColumnType("nvarchar(max)");
 
@@ -96,19 +95,13 @@ namespace EduManager.Infrastructure.Persistence.Migrations.Master
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("MessageTemplate")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("Properties")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTime>("TimeStamp")
+                    b.Property<DateTime>("Timestamp")
                         .HasColumnType("datetime2");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("ErrorCode")
-                        .HasDatabaseName("IX_Logs_ErrorCode");
 
                     b.HasIndex("Id")
                         .HasDatabaseName("IX_Logs_Id");
@@ -116,7 +109,7 @@ namespace EduManager.Infrastructure.Persistence.Migrations.Master
                     b.HasIndex("Level")
                         .HasDatabaseName("IX_Logs_Level");
 
-                    b.HasIndex("TimeStamp")
+                    b.HasIndex("Timestamp")
                         .HasDatabaseName("IX_Logs_Timestamp");
 
                     b.ToTable("Logs", (string)null);

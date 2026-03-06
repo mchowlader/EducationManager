@@ -2,9 +2,13 @@
 using EduManager.Domain.Constants;
 using EduManager.Domain.Enums;
 using EduManager.Domain.Interfaces;
+using EduManager.Domain.Interfaces.Repositories;
 using EduManager.Infrastructure.Identity;
+using EduManager.Infrastructure.Jobs;
 using EduManager.Infrastructure.Persistence;
+using EduManager.Infrastructure.Repositories;
 using EduManager.Infrastructure.Services;
+using Hangfire;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -13,7 +17,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
-using EduManager.Infrastructure.Repositories;
 
 
 namespace EduManager.Infrastructure;
@@ -22,6 +25,15 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
+        services.AddHangfire(config => config
+            .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
+            .UseSimpleAssemblyNameTypeSerializer()
+            .UseRecommendedSerializerSettings()
+            .UseSqlServerStorage(configuration.GetConnectionString("MasterDBConnection"))
+        );
+
+        services.AddHangfireServer();
+
         services.AddDbContext<MasterDbContext>(options =>
             options.UseSqlServer(configuration.GetConnectionString("MasterDBConnection")));
 
@@ -48,11 +60,18 @@ public static class DependencyInjection
             return new EduDbContext(optionsBuilder.Options);
         });
 
+        //UnitOfWork
         services.AddScoped<IUnitOfWork, UnitOfWork>();
-        services.AddScoped(typeof(IRepository<>), typeof(BaseRepository<,>));
+        services.AddScoped<IMasterUnitOfWork, MasterUnitOfWork>();
 
+        //Repository
+        services.AddScoped<ITenantRepository, TenantRepository>();
+
+        //Service
         services.AddScoped<ITokenService, TokenService>();
         services.AddScoped<ITenantService, TenantService>();
+        //Jobs
+        services.AddScoped<ITenantCreationJob, TenantCreationJob>();
         services.AddSingleton<IAuthorizationHandler, PermissionHandler>();
         services.AddSingleton<IEncryptionService, EncryptionService>();
         services.AddHttpContextAccessor();

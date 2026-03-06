@@ -10,6 +10,7 @@ public class MasterDbContext(DbContextOptions<MasterDbContext> options)
 {
     public DbSet<Tenant> Tenants => Set<Tenant>();
     public DbSet<AdminUser> AdminUsers => Set<AdminUser>();
+    public DbSet<Log> Logs => Set<Log>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

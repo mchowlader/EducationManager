@@ -11,11 +11,15 @@ using System.Security.Cryptography;
 
 namespace EduManager.Infrastructure.Jobs;
 
-public class TenantCreationJob(ITenantRepository repository, IUnitOfWork unitOfWork, IConfiguration configuration, IEncryptionService encryption) 
+public class TenantCreationJob(
+    ITenantRepository repository
+    , IMasterUnitOfWork unitOfWork
+    , IConfiguration configuration
+    , IEncryptionService encryption) 
     : ITenantCreationJob
 {
     private readonly ITenantRepository _repository = repository;
-    private readonly IUnitOfWork _unitOfWork = unitOfWork;
+    private readonly IMasterUnitOfWork _unitOfWork = unitOfWork;
     private IConfiguration _configuration = configuration;
     private readonly IEncryptionService _encryption = encryption;
 
@@ -29,11 +33,20 @@ public class TenantCreationJob(ITenantRepository repository, IUnitOfWork unitOfW
         
         var superAdminConn = BuildSuperAdminConnectionString(tenant.Slug);
 
+        var migrationSuccess = await ApplyMigrationsAsync(superAdminConn);
+
+        if (!migrationSuccess)
+        {
+            await UpdateStatusAsync(tenant, TenantStatus.Failed);
+            return;
+        }
+
         var userResult = await CreateDatabaseUserAsync(tenant.Slug, superAdminConn);
 
         if (!userResult.IsSuccess)
         {
             await UpdateStatusAsync(tenant, TenantStatus.Failed);
+            return;
         }
 
         var plainConnectionString = BuildIsolatedConnectionString(tenant.Slug, userResult.UserName, userResult.Password);
@@ -50,13 +63,13 @@ public class TenantCreationJob(ITenantRepository repository, IUnitOfWork unitOfW
         try
         {
             var dbName = $"EduManager_{slug}";
-            var masterConnetion = _configuration.GetConnectionString("MasterConnection");
+            var masterConnetion = _configuration.GetConnectionString("MasterDBConnection");
             await using var conn = new SqlConnection(masterConnetion);
             await conn.OpenAsync();
 
             await using var cmd = new SqlCommand(
                 $"""
-            IF NOT EXITS (SELECT * FROM sys.database WHERE name = {dbName})
+            IF NOT EXITS (SELECT * FROM sys.databases WHERE name = {dbName})
             CREATE DATABASE [{dbName}]
             """, conn);
 
@@ -100,12 +113,12 @@ public class TenantCreationJob(ITenantRepository repository, IUnitOfWork unitOfW
             await using var cmd = new SqlCommand(
 
                 $"""
-                IF NOT EXITS(SELECT * FROM sys.server_principals WHERE name = '{userName}')
+                IF NOT EXISTS(SELECT * FROM sys.server_principals WHERE name = '{userName}')
                 BEGIN
                     CREATE LOGIN [{userName}] WITH PASSWORD = [{password}]
                 END
 
-                IF NOT EXITS(SELECT * FROM sys.database_principals WHERE name = '{userName}')
+                IF NOT EXISTS(SELECT * FROM sys.database_principals WHERE name = '{userName}')
                 BEGIN
                     CREATE USER [{userName}] FOR LOGIN [{userName}]
                     GRANT SELECT, INSERT, UPDATE, DELETE TO [{userName}]
@@ -131,7 +144,7 @@ public class TenantCreationJob(ITenantRepository repository, IUnitOfWork unitOfW
     }
 
     private string BuildSuperAdminConnectionString(string slug) =>
-        $"Server = .; Database=EduManager_{slug}; Trusted_Connection=True; TrustServerCertificate=True ";
+        $"Server = PTSL-MITHUN\\MSSQLSERVER05; Database=EduManager_{slug}; Trusted_Connection=True; TrustServerCertificate=True ";
 
     private string BuildIsolatedConnectionString(string slug, string user, string password) =>
          $"Server = .; Database=EduManager_{slug}; user={user}; password={password}; Trusted_Connection=True; TrustServerCertificate=True ";

@@ -12,19 +12,21 @@ using System.Security.Cryptography;
 
 namespace EduManager.Application.Features.TenantFeature.Commands;
 
-public class CreateTenantCommandHandler(
-        ITenantRepository repository
+public class UpdateTenantCommandHandler(
+          IMediator mediator
+        , ITenantRepository repository
         , IMasterUnitOfWork unitOfWork
         , IBackgroundJobClient backgroundJob
         , IMapper mapper)
-    : IRequestHandler<CreateTenantCommand, Result<TenantResponseDto>>
+    : IRequestHandler<UpdateTenantCommand, Result<TenantResponseDto>>
 {
+    private readonly IMediator _mediator = mediator;
     private readonly ITenantRepository _repository = repository;
     private readonly IMasterUnitOfWork _unitOfWork = unitOfWork;
     private readonly IBackgroundJobClient _backgroundJob = backgroundJob;
     private readonly IMapper _mapper = mapper;
 
-    public async Task<Result<TenantResponseDto>> Handle(CreateTenantCommand request, CancellationToken cancellationToken)
+    public async Task<Result<TenantResponseDto>> Handle(UpdateTenantCommand request, CancellationToken cancellationToken)
     {
         var slugExits = await _repository.SlugExistsAsync(request.Dto.Slug, cancellationToken);
 
@@ -39,9 +41,6 @@ public class CreateTenantCommandHandler(
         var tenant = _mapper.Map<Tenant>(request.Dto);
         tenant.Status = TenantStatus.Pending;
         tenant.EncryptionSalt = Convert.ToBase64String(RandomNumberGenerator.GetBytes(16));
-
-        await _repository.AddAsync(tenant, cancellationToken);
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         _backgroundJob.Enqueue<ITenantCreationJob>(job => job.ExecutionAsync(tenant.Id));
 

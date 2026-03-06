@@ -1,4 +1,7 @@
 <Solution>
+  <Folder Name="/Solution Items/">
+    <File Path="MigrationCmd.txt" />
+  </Folder>
   <Project Path="EduManager.Api/EduManager.Api.csproj" />
   <Project Path="EduManager.AppHost/EduManager.AppHost.csproj" />
   <Project Path="EduManager.Application/EduManager.Application.csproj" />

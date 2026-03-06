@@ -7,6 +7,7 @@ public class ClassesEndPoints : BaseEndPoints<Classes, ClassesCreateDto, Classes
 {
     public static void MapEndpoints(WebApplication app)
     {
-        var group = MapBaseEndPoints(app);
+        var instance = new ClassesEndPoints();
+        MapBaseEndPoints(app, instance.SupportedVersions, instance.DerecatedVersions);
     }
 }
