@@ -4,4 +4,4 @@ using MediatR;
 
 namespace EduManager.Application.Features.TenantFeature.Commands;
 
-public record UpdateTenantCommand(long id, UpdateTenantDto Dto) : IRequest<Result<TenantResponseDto>>;
+public record DeleteTenantCommand(long id) : IRequest<Result<ApiResponse<object>>>;

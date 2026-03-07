@@ -1,50 +1,50 @@
 ﻿using AutoMapper;
 using EduManager.Application.DTOs.Feature.TenantFeature;
-using EduManager.Application.Interfaces;
 using EduManager.Domain.Common;
-using EduManager.Domain.Entities;
-using EduManager.Domain.Enums;
 using EduManager.Domain.Interfaces;
 using EduManager.Domain.Interfaces.Repositories;
 using Hangfire;
 using MediatR;
-using System.Security.Cryptography;
 
 namespace EduManager.Application.Features.TenantFeature.Commands;
 
 public class UpdateTenantCommandHandler(
-          IMediator mediator
-        , ITenantRepository repository
+          ITenantRepository repository
         , IMasterUnitOfWork unitOfWork
-        , IBackgroundJobClient backgroundJob
         , IMapper mapper)
     : IRequestHandler<UpdateTenantCommand, Result<TenantResponseDto>>
 {
-    private readonly IMediator _mediator = mediator;
     private readonly ITenantRepository _repository = repository;
     private readonly IMasterUnitOfWork _unitOfWork = unitOfWork;
-    private readonly IBackgroundJobClient _backgroundJob = backgroundJob;
     private readonly IMapper _mapper = mapper;
 
-    public async Task<Result<TenantResponseDto>> Handle(UpdateTenantCommand request, CancellationToken cancellationToken)
+    public async Task<Result<TenantResponseDto>> Handle(
+        UpdateTenantCommand request, CancellationToken cancellationToken)
     {
-        var slugExits = await _repository.SlugExistsAsync(request.Dto.Slug, cancellationToken);
+        var tenant = await _repository.GetByIdAsync(request.id);
 
-        if (slugExits)
-            return Result<TenantResponseDto>.Failure("Slug already exits.");
+        if (tenant is null)
+            return Result<TenantResponseDto>.Failure("Tenant not found.");
 
-        var emailExits = await _repository.EmailExistsAsync(request.Dto.Email, cancellationToken);
+        if (request.Dto.Email is not null && tenant.Email != request.Dto.Email)
+        {
+            var emailExists = await _repository.EmailExistsAsync(request.Dto.Email, cancellationToken);
+            if (emailExists)
+                return Result<TenantResponseDto>.Failure("Email already exists.");
 
-        if (emailExits)
-            return Result<TenantResponseDto>.Failure("Email already exits.");
+            tenant.Email = request.Dto.Email;
+        }
 
-        var tenant = _mapper.Map<Tenant>(request.Dto);
-        tenant.Status = TenantStatus.Pending;
-        tenant.EncryptionSalt = Convert.ToBase64String(RandomNumberGenerator.GetBytes(16));
+        if (request.Dto.Name is not null)
+            tenant.Name = request.Dto.Name;
 
-        _backgroundJob.Enqueue<ITenantCreationJob>(job => job.ExecutionAsync(tenant.Id));
+        if (request.Dto.Mobile is not null)
+            tenant.Mobile = request.Dto.Mobile;
+
+        _repository.Update(tenant);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         return Result<TenantResponseDto>.Success(
-            new TenantResponseDto(tenant.Id, tenant.Name, tenant.Slug, tenant.Status), "Tenant creation initiated");
+            _mapper.Map<TenantResponseDto>(tenant), "Tenant updated successfully");
     }
 }

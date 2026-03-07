@@ -83,8 +83,8 @@ public abstract class BaseEndPoints<TEntity, TCreateDto, TUpdateDto, TResponseDt
                 .Produces(StatusCodes.Status403Forbidden)
                 .Produces(StatusCodes.Status500InternalServerError);
 
-            var update = group.MapPut("/", UpdateHandler)
-                .WithSummary($"Update{EntityName}V{version}")
+            var update = group.MapPatch("/{id:long}", UpdateHandler)
+                .WithSummary($"Update {EntityName}")
                 .WithDescription($"Update {EntityName}")
                 .MapToApiVersion(version)
                 .RequireAuthorization(UpdatePermission)
@@ -96,7 +96,7 @@ public abstract class BaseEndPoints<TEntity, TCreateDto, TUpdateDto, TResponseDt
                 .Produces(StatusCodes.Status403Forbidden)
                 .Produces(StatusCodes.Status500InternalServerError);
 
-            var delete = group.MapDelete("/", DeleteHandler)
+            var delete = group.MapDelete("/{id:long}", DeleteHandler)
                 .WithSummary($"Delete{EntityName}V{version}")
                 .WithDescription($"Delete {EntityName}")
                 .MapToApiVersion(version)
@@ -111,10 +111,10 @@ public abstract class BaseEndPoints<TEntity, TCreateDto, TUpdateDto, TResponseDt
             if (isDeprecated)
             {
                 getAll.Add(builder => builder.Metadata.Add(new EndpointDeprecatedMetadata()));
-                getById.Add(builder => builder.Metadata.Add(new EndpointDeprecatedMetadata()));
                 create.Add(builder => builder.Metadata.Add(new EndpointDeprecatedMetadata()));
                 update.Add(builder => builder.Metadata.Add(new EndpointDeprecatedMetadata()));
                 delete.Add(builder => builder.Metadata.Add(new EndpointDeprecatedMetadata()));
+                getById.Add(builder => builder.Metadata.Add(new EndpointDeprecatedMetadata()));
             }
 
         }

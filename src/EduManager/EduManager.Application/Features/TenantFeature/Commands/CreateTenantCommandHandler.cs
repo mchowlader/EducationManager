@@ -46,6 +46,6 @@ public class CreateTenantCommandHandler(
         _backgroundJob.Enqueue<ITenantCreationJob>(job => job.ExecutionAsync(tenant.Id));
 
         return Result<TenantResponseDto>.Success(
-            new TenantResponseDto(tenant.Id, tenant.Name, tenant.Slug, tenant.Status), "Tenant creation initiated");
+            _mapper.Map<TenantResponseDto>(tenant), "Tenant creation initiated");
     }
 }

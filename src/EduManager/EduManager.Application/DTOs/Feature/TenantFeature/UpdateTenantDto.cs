@@ -2,8 +2,7 @@
 
 public record UpdateTenantDto
 (
-    string Name,
-    string Slug,
-    string Email,
-    string Mobile
+    string? Name,
+    string? Email,
+    string? Mobile
 );

@@ -48,9 +48,6 @@ public static class DependencyInjection
 
             if (tenant is null)
             {
-                //var logger = provider.GetRequiredService<ILogger<EduDbContext>>();
-                //logger.LogWarning("Tenant '{TenantSlug}' not found.", tenantSlug);
-
                 optionsBuilder.UseInMemoryDatabase("TenantMissing");
                 return new EduDbContext(optionsBuilder.Options);
             }
@@ -73,6 +70,7 @@ public static class DependencyInjection
 
         //Jobs
         services.AddScoped<ITenantCreationJob, TenantCreationJob>();
+        services.AddScoped<ITenantDeletionJob, TenantDeletionJob>();
         services.AddSingleton<IAuthorizationHandler, PermissionHandler>();
         services.AddSingleton<IEncryptionService, EncryptionService>();
         services.AddHttpContextAccessor();

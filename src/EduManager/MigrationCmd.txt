@@ -5,8 +5,8 @@ Add-Migration AddLogsTable -Context MasterDbContext -OutputDir Persistence/Migra
 Update-Database -Context MasterDbContext
 
 {
-  "name": "Hatempur High School",
-  "slug": "Hatempur",
-  "email": "hatempur@gmail.com",
-  "mobile": "01710025023"
+	"name": "Hatempur High School",
+	"slug": "Hatempur",
+	"email": "hatempur@gmail.com",
+	"mobile": "01710025023"
 }
