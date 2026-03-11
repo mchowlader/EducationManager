@@ -1,5 +1,6 @@
 ﻿using EduManager.Domain.Common;
 using EduManager.Domain.Entities;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -8,10 +9,31 @@ namespace EduManager.Infrastructure.Persistence;
 
 public class EduDbContext : DbContext
 {
-    public EduDbContext(DbContextOptions<EduDbContext> options) : base(options) { }
+    private readonly IHttpContextAccessor? _httpContextAccessor;
 
-    protected EduDbContext() { }
+    public EduDbContext(DbContextOptions<EduDbContext> options, IHttpContextAccessor httpContextAccessor) : base(options)
+    {
+        _httpContextAccessor = httpContextAccessor;
+    }
 
+    protected EduDbContext()
+    {
+        _httpContextAccessor = null;
+    }
+
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    {
+        if (!optionsBuilder.IsConfigured)
+        {
+            var tenantContext = _httpContextAccessor?.HttpContext?
+                .Items["TenantContext"] as TenantContext;
+
+            if(tenantContext?.ConnectionString is not null)
+            {
+                optionsBuilder.UseNpgsql(tenantContext.ConnectionString);
+            }
+        }
+    }
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         foreach(var entityType in modelBuilder.Model.GetEntityTypes())

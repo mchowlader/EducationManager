@@ -55,6 +55,12 @@ public class EncryptionService(IConfiguration configuration) : IEncryptionServic
         return Convert.ToBase64String(result);
     }
 
+    public string HashPassword(string password) =>
+        BCrypt.Net.BCrypt.HashPassword(password);
+
+    public bool VerifyPassword(string password, string hash) =>
+        BCrypt.Net.BCrypt.Verify(password, hash);
+
     private byte[] DriveKey(string slug, string salt)
     {
         var input = Encoding.UTF8.GetBytes($"{slug}-{salt}");

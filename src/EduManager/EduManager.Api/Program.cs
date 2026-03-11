@@ -73,10 +73,10 @@ builder.Services.AddRateLimiter(option =>
 });
 
 
-
 var app = builder.Build();
 app.UseSerilogRequestLogging();
 app.UseMiddleware<GlobalExceptionMiddleware>();
+app.UseTenantMiddleware();
 app.UseRateLimiter();
 app.MapDefaultEndpoints();
 

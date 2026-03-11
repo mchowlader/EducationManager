@@ -1,4 +1,4 @@
-﻿namespace EduManager.Domain.Entities;
+﻿namespace EduManager.Domain.Entities.Master;
 
 public class Log
 {

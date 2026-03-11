@@ -1,5 +1,5 @@
 ﻿using AutoMapper;
-using EduManager.Domain.Entities;
+using EduManager.Domain.Entities.Master;
 
 namespace EduManager.Application.DTOs.Feature.TenantFeature;
 

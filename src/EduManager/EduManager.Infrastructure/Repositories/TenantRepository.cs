@@ -1,4 +1,4 @@
-﻿using EduManager.Domain.Entities;
+﻿using EduManager.Domain.Entities.Master;
 using EduManager.Domain.Interfaces.Repositories;
 using EduManager.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;

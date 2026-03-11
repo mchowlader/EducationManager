@@ -1,4 +1,4 @@
-﻿using EduManager.Domain.Entities;
+﻿using EduManager.Domain.Entities.Master;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -12,10 +12,10 @@ public class LogConfigure : IEntityTypeConfiguration<Log>
         builder.HasKey(x => x.Id);
 
         builder.Property(l => l.Id)
-            .UseIdentityColumn();
+            .UseIdentityByDefaultColumn();
 
         builder.Property(l => l.TimeStamp)
-            .HasColumnType("datetime2")
+            .HasColumnType("timestamp with time zone")
             .IsRequired();
 
         builder.Property(l => l.Level)
@@ -23,14 +23,14 @@ public class LogConfigure : IEntityTypeConfiguration<Log>
             .IsRequired ();
 
         builder.Property(x => x.Message)
-            .HasColumnType("nvarchar(max)")
+            .HasColumnType("text")
             .IsRequired();
 
         builder.Property(x => x.Exception)
-            .HasColumnType("nvarchar(max)");
+            .HasColumnType("text");
 
         builder.Property(x => x.Properties)
-           .HasColumnType("nvarchar(max)");
+           .HasColumnType("text");
 
 
         builder.Property(x => x.ErrorCode)

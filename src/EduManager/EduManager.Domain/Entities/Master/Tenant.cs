@@ -1,7 +1,7 @@
 ﻿using EduManager.Domain.Common;
 using EduManager.Domain.Enums;
 
-namespace EduManager.Domain.Entities
+namespace EduManager.Domain.Entities.Master
 {
     public class Tenant : BaseEntity
     {

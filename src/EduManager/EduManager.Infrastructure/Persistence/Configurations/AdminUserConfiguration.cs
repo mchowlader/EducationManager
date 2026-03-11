@@ -1,4 +1,4 @@
-﻿using EduManager.Domain.Entities;
+﻿using EduManager.Domain.Entities.Master;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 

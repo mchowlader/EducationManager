@@ -2,6 +2,7 @@
 using EduManager.Application.DTOs.Feature.TenantFeature;
 using EduManager.Application.Features.TenantFeature.Commands;
 using EduManager.Application.Features.TenantFeature.Queries;
+using EduManager.Domain.Attributes;
 using EduManager.Domain.Common;
 using MediatR;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -19,7 +20,8 @@ public class TenantEndpoints : IEndpoints
 
         var group = app.MapGroup("/api/v/{version:apiVersion}/tenants")
             .WithApiVersionSet(versionSet)
-            .WithTags("Tenants");
+            .WithTags("Tenants")
+            .WithMetadata(new MasterRouteAttribute()); ;
 
         group.MapPost("/", CreateTenantHandlerV1)
             .WithName("CreateTenantV1")

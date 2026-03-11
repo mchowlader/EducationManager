@@ -1,5 +1,5 @@
 ﻿using EduManager.Domain.Common;
-using EduManager.Domain.Entities;
+using EduManager.Domain.Entities.Master;
 using Microsoft.EntityFrameworkCore;
 using System.Reflection;
 

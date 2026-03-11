@@ -1,5 +1,5 @@
 ﻿using EduManager.Application.Interfaces;
-using EduManager.Domain.Entities;
+using EduManager.Domain.Entities.Master;
 using EduManager.Domain.Enums;
 using EduManager.Domain.Interfaces;
 using EduManager.Domain.Interfaces.Repositories;
@@ -7,6 +7,7 @@ using EduManager.Infrastructure.Persistence;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Npgsql;
 using System.Security.Cryptography;
 
 namespace EduManager.Infrastructure.Jobs;
@@ -59,57 +60,81 @@ public class TenantCreationJob(
     }
     private async Task<bool> CreateDatabaseAsync(string slug)
     {
-        var dbName = $"EduManager_{slug}";
-        var masterConnection = _configuration.GetConnectionString("MasterDBConnection");
+        try
+        {
+            var dbName = $"edumanager_{slug}";
+            var masterConnection = _configuration.GetConnectionString("MasterDBConnection")!;
 
-        await using var conn = new SqlConnection(masterConnection);
-        await conn.OpenAsync();
+            await using var conn = new NpgsqlConnection(masterConnection);
+            await conn.OpenAsync();
 
-        await using var cmd = new SqlCommand(
-            $"""
-            IF NOT EXISTS (SELECT * FROM sys.databases WHERE name = '{dbName}')
-            CREATE DATABASE [{dbName}]
-            """, conn);
+            // Check if database exists
+            await using var checkCmd = new NpgsqlCommand(
+                $"SELECT 1 FROM pg_database WHERE datname = '{dbName}'", conn);
 
-        await cmd.ExecuteNonQueryAsync();
-        return true;
+            var exists = await checkCmd.ExecuteScalarAsync();
+
+            if (exists is null)
+            {
+                await using var createCmd = new NpgsqlCommand(
+                    $"CREATE DATABASE \"{dbName}\"", conn);
+                await createCmd.ExecuteNonQueryAsync();
+            }
+
+            return true;
+        }
+        catch (Exception ex)
+        {
+            //_logger.LogError(ex, "Failed to create database for slug: {Slug}", slug);
+            return false;
+        }
     }
     private async Task<bool> ApplyMigrationsAsync(string connectionString)
     {
         var optionBuilder = new DbContextOptionsBuilder<EduDbContext>();
-        optionBuilder.UseSqlServer(connectionString);
+        optionBuilder.UseNpgsql(connectionString);
 
-        await using var context = new EduDbContext(optionBuilder.Options);
+        await using var context = new EduDbContext(optionBuilder.Options, null!);
         await context.Database.MigrateAsync();
         return true;
     }
     private async Task<DbUserResult> CreateDatabaseUserAsync(string slug, string connectionString)
     {
-        var userName = $"edu_{slug}_user";
-        var password = GeneratePassword();
+        try
+        {
+            var userName = $"edu_{slug}_user";
+            var password = GeneratePassword();
+            var dbName = $"edumanager_{slug}";
 
-        await using var conn = new SqlConnection(connectionString);
-        await conn.OpenAsync();
+            await using var conn = new NpgsqlConnection(connectionString);
+            await conn.OpenAsync();
 
-        await using var cmd = new SqlCommand(
+            await using var cmd = new NpgsqlCommand(
+                $"""
+            DO $$
+            BEGIN
+                IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = '{userName}') THEN
+                    CREATE ROLE "{userName}" WITH LOGIN PASSWORD '{password}';
+                END IF;
+            END
+            $$;
 
-            $"""
-                IF NOT EXISTS(SELECT * FROM sys.server_principals WHERE name = '{userName}')
-                BEGIN
-                    CREATE LOGIN [{userName}] WITH PASSWORD = '{password}'
-                END
+            GRANT CONNECT ON DATABASE "{dbName}" TO "{userName}";
+            GRANT USAGE ON SCHEMA public TO "{userName}";
+            GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO "{userName}";
+            ALTER DEFAULT PRIVILEGES IN SCHEMA public
+                GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO "{userName}";
+            """, conn);
 
-                IF NOT EXISTS(SELECT * FROM sys.database_principals WHERE name = '{userName}')
-                BEGIN
-                    CREATE USER [{userName}] FOR LOGIN [{userName}]
-                    GRANT SELECT, INSERT, UPDATE, DELETE TO [{userName}]
-                END
-            """, conn
-        );
+            await cmd.ExecuteNonQueryAsync();
 
-        await cmd.ExecuteNonQueryAsync();
-
-        return new DbUserResult(true, userName, password);
+            return new DbUserResult(true, userName, password);
+        }
+        catch (Exception ex)
+        {
+            //logger.LogError(ex, "Failed to create database user for slug: {Slug}", slug);
+            return new DbUserResult(false, string.Empty, string.Empty);
+        }
     }
     private async Task UpdateStatusAsync(Tenant tenant, TenantStatus status)
     {
@@ -120,12 +145,23 @@ public class TenantCreationJob(
     private string BuildSuperAdminConnectionString(string slug)
     {
         var masterConn = _configuration.GetConnectionString("MasterDBConnection")!;
-        var builder = new SqlConnectionStringBuilder(masterConn);
-        builder.InitialCatalog = $"EduManager_{slug}";
+        var builder = new NpgsqlConnectionStringBuilder(masterConn)
+        {
+            Database = $"edumanager_{slug}"
+        };
         return builder.ConnectionString;
     }
-    private string BuildIsolatedConnectionString(string slug, string user, string password) =>
-         $"Server = .; Database=EduManager_{slug}; user={user}; password={password}; Trusted_Connection=True; TrustServerCertificate=True ";
+    private string BuildIsolatedConnectionString(string slug, string user, string password)
+    {
+        var masterConn = _configuration.GetConnectionString("MasterDBConnection")!;
+        var builder = new NpgsqlConnectionStringBuilder(masterConn)
+        {
+            Database = $"edumanager_{slug}",
+            Username = user,
+            Password = password
+        };
+        return builder.ConnectionString;
+    }
     private static string GeneratePassword()
     {
         const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";

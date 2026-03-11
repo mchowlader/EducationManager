@@ -1,4 +1,4 @@
-﻿using EduManager.Domain.Entities;
+﻿using EduManager.Domain.Entities.Master;
 
 namespace EduManager.Domain.Interfaces.Repositories;
 

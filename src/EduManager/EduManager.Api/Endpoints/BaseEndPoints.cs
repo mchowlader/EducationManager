@@ -19,8 +19,7 @@ public abstract class BaseEndPoints<TEntity, TCreateDto, TUpdateDto, TResponseDt
 {
     protected static string EntityName => typeof(TEntity).Name;
     protected static string Route => ToKebabCase(typeof(TEntity).Name);
-
-
+    
     protected virtual double[] SupportedVersions => [1.0];
     protected virtual double[] DerecatedVersions => [];
 

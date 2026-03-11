@@ -18,8 +18,8 @@ public class EduDbContextFactory : IDesignTimeDbContextFactory<EduDbContext>
         var connectionString = configuration.GetConnectionString("DefaultTenantConnection");
 
         var optionsBuilder = new DbContextOptionsBuilder<EduDbContext>();
-        optionsBuilder.UseSqlServer(connectionString);
+        optionsBuilder.UseNpgsql(connectionString);
 
-        return new EduDbContext(optionsBuilder.Options);
+        return new EduDbContext(optionsBuilder.Options, null!);
     }
 }

@@ -1,6 +1,5 @@
 ﻿using EduManager.Application.Interfaces;
 using EduManager.Domain.Constants;
-using EduManager.Domain.Enums;
 using EduManager.Domain.Interfaces;
 using EduManager.Domain.Interfaces.Repositories;
 using EduManager.Infrastructure.Identity;
@@ -9,15 +8,14 @@ using EduManager.Infrastructure.Persistence;
 using EduManager.Infrastructure.Repositories;
 using EduManager.Infrastructure.Services;
 using Hangfire;
+using Hangfire.PostgreSql;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
-
 
 namespace EduManager.Infrastructure;
 
@@ -26,36 +24,38 @@ public static class DependencyInjection
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddHangfire(config => config
-            .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
-            .UseSimpleAssemblyNameTypeSerializer()
-            .UseRecommendedSerializerSettings()
-            .UseSqlServerStorage(configuration.GetConnectionString("MasterDBConnection"))
-        );
+         .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
+         .UseSimpleAssemblyNameTypeSerializer()
+         .UseRecommendedSerializerSettings()
+         .UsePostgreSqlStorage(c =>
+             c.UseNpgsqlConnection(configuration.GetConnectionString("MasterDBConnection")))
+ );
 
         services.AddHangfireServer();
 
         services.AddDbContext<MasterDbContext>(options =>
-            options.UseSqlServer(configuration.GetConnectionString("MasterDBConnection")));
+            options.UseNpgsql(configuration.GetConnectionString("MasterDBConnection")));
 
-        services.AddScoped<EduDbContext>(provider =>
-        {
-            var httpContext = provider.GetRequiredService<IHttpContextAccessor>().HttpContext;
-            var masterDB = provider.GetRequiredService<MasterDbContext>();
+        //services.AddScoped<EduDbContext>(provider =>
+        //{
+        //    var httpContext = provider.GetRequiredService<IHttpContextAccessor>().HttpContext;
+        //    var masterDB = provider.GetRequiredService<MasterDbContext>();
 
-            var tenantSlug = httpContext?.Request?.Host.Host.Split(':')[0] ?? string.Empty;
-            var tenant = masterDB.Tenants.FirstOrDefault(t => t.Slug == tenantSlug && t.Status == TenantStatus.Active);
-            var optionsBuilder = new DbContextOptionsBuilder<EduDbContext>();
+        //    var tenantSlug = httpContext?.Request?.Host.Host.Split(':')[0] ?? string.Empty;
+        //    var tenant = masterDB.Tenants.FirstOrDefault(t => t.Slug == tenantSlug && t.Status == TenantStatus.Active);
+        //    var optionsBuilder = new DbContextOptionsBuilder<EduDbContext>();
 
-            if (tenant is null)
-            {
-                optionsBuilder.UseInMemoryDatabase("TenantMissing");
-                return new EduDbContext(optionsBuilder.Options);
-            }
+        //    if (tenant is null)
+        //    {
+        //        optionsBuilder.UseInMemoryDatabase("TenantMissing");
+        //        return new EduDbContext(optionsBuilder.Options);
+        //    }
 
-            optionsBuilder.UseSqlServer(tenant.ConnectionString);
+        //    optionsBuilder.UseSqlServer(tenant.ConnectionString);
 
-            return new EduDbContext(optionsBuilder.Options);
-        });
+        //    return new EduDbContext(optionsBuilder.Options);
+        //});
+        services.AddDbContext<EduDbContext>();
 
         //UnitOfWork
         services.AddScoped<IUnitOfWork, UnitOfWork>();
@@ -74,6 +74,9 @@ public static class DependencyInjection
         services.AddSingleton<IAuthorizationHandler, PermissionHandler>();
         services.AddSingleton<IEncryptionService, EncryptionService>();
         services.AddHttpContextAccessor();
+
+        //Middleware
+        services.AddScoped<ITenantContext, TenantContextService>();
         services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         .AddJwtBearer(options =>
         {

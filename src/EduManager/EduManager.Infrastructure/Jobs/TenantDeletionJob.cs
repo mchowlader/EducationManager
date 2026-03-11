@@ -4,6 +4,7 @@ using EduManager.Domain.Interfaces.Repositories;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Npgsql;
 
 namespace EduManager.Infrastructure.Jobs;
 
@@ -54,39 +55,35 @@ public class TenantDeletionJob(
     {
         try
         {
-            var masterConnection = _configuration.GetConnectionString("MasterDBConnection");
-            var builder = new SqlConnectionStringBuilder(masterConnection)
+            var masterConn = _configuration.GetConnectionString("MasterDBConnection")!;
+            var builder = new NpgsqlConnectionStringBuilder(masterConn)
             {
-                InitialCatalog = "master"
+                Database = "postgres"  // master DB
             };
 
-            await using var conn = new SqlConnection(builder.ConnectionString);
+            await using var conn = new NpgsqlConnection(builder.ConnectionString);
             await conn.OpenAsync();
-            await using var cmd = new SqlCommand(
+
+            await using var cmd = new NpgsqlCommand(
                 $"""
-                  IF EXISTS (SELECT * FROM sys.databases WHERE name = '{dbName}')
-                BEGIN
-                    ALTER DATABASE [{dbName}] SET SINGLE_USER WITH ROLLBACK IMMEDIATE
-                    DROP DATABASE [{dbName}]
-                END
+            -- Terminate active connections
+            SELECT pg_terminate_backend(pid)
+            FROM pg_stat_activity
+            WHERE datname = '{dbName}' AND pid <> pg_backend_pid();
 
-                IF EXISTS (SELECT * FROM sys.server_principals WHERE name = '{userName}')
-                BEGIN
-                    DROP LOGIN [{userName}]
-                END
-                """, conn
-            );
+            -- Drop database
+            DROP DATABASE IF EXISTS "{dbName}";
+
+            -- Drop role
+            DROP ROLE IF EXISTS "{userName}";
+            """, conn);
+
             await cmd.ExecuteNonQueryAsync();
-            conn.Close();
-
             return true;
-
-
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex,
-                "TenantDeletionJob: Exception while dropping database {DbName}", dbName);
+            _logger.LogError(ex, "Failed to drop database: {DbName}", dbName);
             return false;
         }
     }

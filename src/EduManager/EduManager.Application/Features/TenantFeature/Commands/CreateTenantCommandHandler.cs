@@ -2,7 +2,7 @@
 using EduManager.Application.DTOs.Feature.TenantFeature;
 using EduManager.Application.Interfaces;
 using EduManager.Domain.Common;
-using EduManager.Domain.Entities;
+using EduManager.Domain.Entities.Master;
 using EduManager.Domain.Enums;
 using EduManager.Domain.Interfaces;
 using EduManager.Domain.Interfaces.Repositories;
