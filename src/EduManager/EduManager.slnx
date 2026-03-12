@@ -1,6 +1,7 @@
 <Solution>
   <Folder Name="/Solution Items/">
     <File Path="MigrationCmd.txt" />
+    <File Path="SqlQuer.sql" />
   </Folder>
   <Project Path="EduManager.Api/EduManager.Api.csproj" />
   <Project Path="EduManager.AppHost/EduManager.AppHost.csproj" />

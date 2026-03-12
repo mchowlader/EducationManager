@@ -2,9 +2,9 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace EduManager.Infrastructure.Persistence.Configurations;
+namespace EduManager.Infrastructure.Persistence.Configurations.Master;
 
-public class AdminUserConfiguration : IEntityTypeConfiguration<AdminUser>
+public class AdminUserConfiguration : MasterEntityConfiguration, IEntityTypeConfiguration<AdminUser>
 {
     public void Configure(EntityTypeBuilder<AdminUser> builder)
     {

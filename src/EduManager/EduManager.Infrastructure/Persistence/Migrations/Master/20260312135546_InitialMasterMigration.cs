@@ -7,7 +7,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace EduManager.Infrastructure.Persistence.Migrations.Master
 {
     /// <inheritdoc />
-    public partial class InitialMaster : Migration
+    public partial class InitialMasterMigration : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -61,11 +61,12 @@ namespace EduManager.Infrastructure.Persistence.Migrations.Master
                 {
                     Id = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    Name = table.Column<string>(type: "text", nullable: false),
-                    Slug = table.Column<string>(type: "text", nullable: false),
-                    Email = table.Column<string>(type: "text", nullable: false),
-                    Mobile = table.Column<string>(type: "text", nullable: false),
-                    ConnectionString = table.Column<string>(type: "text", nullable: false),
+                    Name = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
+                    Slug = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    SlugCode = table.Column<string>(type: "text", nullable: false),
+                    Email = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
+                    Mobile = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
+                    ConnectionString = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: false),
                     EncryptionSalt = table.Column<string>(type: "text", nullable: false),
                     Status = table.Column<int>(type: "integer", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
@@ -109,6 +110,29 @@ namespace EduManager.Infrastructure.Persistence.Migrations.Master
                 name: "IX_Logs_Timestamp",
                 table: "Logs",
                 column: "TimeStamp");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Tenants_Email",
+                table: "Tenants",
+                column: "Email",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Tenants_Id",
+                table: "Tenants",
+                column: "Id");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Tenants_Mobile",
+                table: "Tenants",
+                column: "Mobile",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Tenants_Slug",
+                table: "Tenants",
+                column: "Slug",
+                unique: true);
         }
 
         /// <inheritdoc />

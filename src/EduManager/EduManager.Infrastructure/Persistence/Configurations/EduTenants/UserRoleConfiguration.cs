@@ -2,9 +2,9 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace EduManager.Infrastructure.Persistence.Configurations;
+namespace EduManager.Infrastructure.Persistence.Configurations.EduTenants;
 
-public class UserRoleConfiguration : IEntityTypeConfiguration<UserRole>
+public class UserRoleConfiguration : EduEntityConfiguration, IEntityTypeConfiguration<UserRole>
 {
     public void Configure(EntityTypeBuilder<UserRole> builder)
     {

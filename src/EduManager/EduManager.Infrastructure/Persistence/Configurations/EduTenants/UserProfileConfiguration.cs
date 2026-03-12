@@ -2,27 +2,19 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace EduManager.Infrastructure.Persistence.Configurations;
+namespace EduManager.Infrastructure.Persistence.Configurations.EduTenants;
 
-public class UserConfiguration : IEntityTypeConfiguration<User>
+public class UserProfileConfiguration : EduEntityConfiguration, IEntityTypeConfiguration<UserProfile>
 {
-    public void Configure(EntityTypeBuilder<User> builder)
+    public void Configure(EntityTypeBuilder<UserProfile> builder)
     {
-        builder.ToTable("Users");
+        builder.ToTable("UserProfiles");
         builder.HasKey(x => x.Id);
 
         builder.Property(x => x.Id)
             .UseIdentityByDefaultColumn();
 
-        builder.Property(x => x.UserCode)
-            .HasMaxLength(20)
-            .IsRequired();
-
         builder.Property(x => x.FullName)
-            .HasMaxLength(200)
-            .IsRequired();
-
-        builder.Property(x => x.Email)
             .HasMaxLength(200)
             .IsRequired();
 
@@ -33,16 +25,6 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(x => x.DateOfBirth)
             .HasColumnType("timestamp with time zone")
             .IsRequired();
-
-        builder.Property(x => x.PasswordHash)
-            .HasMaxLength(500)
-            .IsRequired();
-
-        builder.Property(x => x.RefreshToken)
-            .HasMaxLength(500);
-
-        builder.Property(x => x.RefreshTokenExpiry)
-            .HasColumnType("timestamp with time zone");
 
         // Owned Entity — Address
         builder.OwnsOne(x => x.Address, address =>
@@ -68,13 +50,14 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
                 .HasMaxLength(20);
         });
 
-        // Indexes
-        builder.HasIndex(x => x.UserCode)
-            .IsUnique()
-            .HasDatabaseName("IX_Users_UserCode");
+        // Relationship
+        builder.HasOne(x => x.User)
+            .WithOne(x => x.Profile)
+            .HasForeignKey<UserProfile>(x => x.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
 
-        builder.HasIndex(x => x.Email)
+        builder.HasIndex(x => x.UserId)
             .IsUnique()
-            .HasDatabaseName("IX_Users_Email");
+            .HasDatabaseName("IX_UserProfiles_UserId");
     }
 }

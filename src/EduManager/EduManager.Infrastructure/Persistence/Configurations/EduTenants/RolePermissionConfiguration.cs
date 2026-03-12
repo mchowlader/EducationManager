@@ -5,9 +5,9 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace EduManager.Infrastructure.Persistence.Configurations;
+namespace EduManager.Infrastructure.Persistence.Configurations.EduTenants;
 
-public class RolePermissionConfiguration : IEntityTypeConfiguration<RolePermission>
+public class RolePermissionConfiguration : EduEntityConfiguration, IEntityTypeConfiguration<RolePermission>
 {
     public void Configure(EntityTypeBuilder<RolePermission> builder)
     {

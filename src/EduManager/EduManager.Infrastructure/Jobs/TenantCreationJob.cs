@@ -41,6 +41,9 @@ public class TenantCreationJob(
             return;
         }
 
+        // Migration এর পরে tenant_config তে SlugCode insert করো
+        await InsertTenantConfigAsync(superAdminConn, tenant.SlugCode);
+
         var userResult = await CreateDatabaseUserAsync(tenant.Slug, superAdminConn);
 
         if (!userResult.IsSuccess)
@@ -61,7 +64,7 @@ public class TenantCreationJob(
     {
         try
         {
-            var dbName = $"edumanager_{slug}";
+            var dbName = $"Edumanager_{slug}";
             var masterConnection = _configuration.GetConnectionString("MasterDBConnection")!;
 
             await using var conn = new NpgsqlConnection(masterConnection);
@@ -103,7 +106,7 @@ public class TenantCreationJob(
         {
             var userName = $"edu_{slug}_user";
             var password = GeneratePassword();
-            var dbName = $"edumanager_{slug}";
+            var dbName = $"Edumanager_{slug}";
 
             await using var conn = new NpgsqlConnection(connectionString);
             await conn.OpenAsync();
@@ -146,7 +149,7 @@ public class TenantCreationJob(
         var masterConn = _configuration.GetConnectionString("MasterDBConnection")!;
         var builder = new NpgsqlConnectionStringBuilder(masterConn)
         {
-            Database = $"edumanager_{slug}"
+            Database = $"Edumanager_{slug}"
         };
         return builder.ConnectionString;
     }
@@ -155,7 +158,7 @@ public class TenantCreationJob(
         var masterConn = _configuration.GetConnectionString("MasterDBConnection")!;
         var builder = new NpgsqlConnectionStringBuilder(masterConn)
         {
-            Database = $"edumanager_{slug}",
+            Database = $"Edumanager_{slug}",
             Username = user,
             Password = password
         };
@@ -166,5 +169,15 @@ public class TenantCreationJob(
         const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
         var bytes = RandomNumberGenerator.GetBytes(32);
         return new string(bytes.Select(b => chars[b % chars.Length]).ToArray());
+    }
+    private async Task InsertTenantConfigAsync(string connectionString, string slugCode)
+    {
+        await using var conn = new NpgsqlConnection(connectionString);
+        await conn.OpenAsync();
+
+        await using var cmd = new NpgsqlCommand(
+            "INSERT INTO tenant_config (key, value) VALUES ('slug_code', @slugCode)", conn);
+        cmd.Parameters.AddWithValue("slugCode", slugCode);
+        await cmd.ExecuteNonQueryAsync();
     }
 }

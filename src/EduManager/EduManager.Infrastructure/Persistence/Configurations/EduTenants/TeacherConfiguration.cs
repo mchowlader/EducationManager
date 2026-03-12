@@ -2,9 +2,9 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace EduManager.Infrastructure.Persistence.Configurations;
+namespace EduManager.Infrastructure.Persistence.Configurations.EduTenants;
 
-public class TeacherConfiguration : IEntityTypeConfiguration<Teacher>
+public class TeacherConfiguration : EduEntityConfiguration, IEntityTypeConfiguration<Teacher>
 {
     public void Configure(EntityTypeBuilder<Teacher> builder)
     {
@@ -16,7 +16,8 @@ public class TeacherConfiguration : IEntityTypeConfiguration<Teacher>
 
         builder.Property(x => x.TeacherCode)
             .HasMaxLength(20)
-            .IsRequired();
+            .ValueGeneratedOnAdd();
+
 
         builder.Property(x => x.Designation)
             .HasMaxLength(100)

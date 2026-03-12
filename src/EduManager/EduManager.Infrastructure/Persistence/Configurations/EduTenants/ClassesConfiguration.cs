@@ -2,9 +2,9 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace EduManager.Infrastructure.Persistence.Configurations;
+namespace EduManager.Infrastructure.Persistence.Configurations.EduTenants;
 
-public class ClassesConfiguration : IEntityTypeConfiguration<Classes>
+public class ClassesConfiguration : EduEntityConfiguration, IEntityTypeConfiguration<Classes>
 {
     public void Configure(EntityTypeBuilder<Classes> builder)
     {

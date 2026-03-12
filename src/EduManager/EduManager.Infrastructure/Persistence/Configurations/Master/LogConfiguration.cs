@@ -2,9 +2,9 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace EduManager.Infrastructure.Persistence.Configurations;
+namespace EduManager.Infrastructure.Persistence.Configurations.Master;
 
-public class LogConfigure : IEntityTypeConfiguration<Log>
+public class LogConfiguration : MasterEntityConfiguration, IEntityTypeConfiguration<Log>
 {
     public void Configure(EntityTypeBuilder<Log> builder)
     {

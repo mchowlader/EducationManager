@@ -2,9 +2,9 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace EduManager.Infrastructure.Persistence.Configurations;
+namespace EduManager.Infrastructure.Persistence.Configurations.EduTenants;
 
-public class StudentConfiguration : IEntityTypeConfiguration<Student>
+public class StudentConfiguration : EduEntityConfiguration, IEntityTypeConfiguration<Student>
 {
     public void Configure(EntityTypeBuilder<Student> builder)
     {
@@ -16,7 +16,7 @@ public class StudentConfiguration : IEntityTypeConfiguration<Student>
 
         builder.Property(x => x.StudentCode)
             .HasMaxLength(20)
-            .IsRequired();
+            .ValueGeneratedOnAdd(); ;
 
         // Relationships
         builder.HasOne(x => x.Section)

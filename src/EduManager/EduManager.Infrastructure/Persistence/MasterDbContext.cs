@@ -1,5 +1,6 @@
 ﻿using EduManager.Domain.Common;
 using EduManager.Domain.Entities.Master;
+using EduManager.Infrastructure.Persistence.Configurations.Master;
 using Microsoft.EntityFrameworkCore;
 using System.Reflection;
 
@@ -14,7 +15,10 @@ public class MasterDbContext(DbContextOptions<MasterDbContext> options)
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
+        modelBuilder.ApplyConfigurationsFromAssembly(
+            Assembly.GetExecutingAssembly(),
+            t => t.IsSubclassOf(typeof(MasterEntityConfiguration)));
+
         base.OnModelCreating(modelBuilder);
     }
 

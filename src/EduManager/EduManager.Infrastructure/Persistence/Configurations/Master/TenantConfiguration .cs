@@ -1,9 +1,10 @@
 ﻿using EduManager.Domain.Entities.Master;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace EduManager.Infrastructure.Persistence.Configurations;
+namespace EduManager.Infrastructure.Persistence.Configurations.Master;
 
-public class TenantConfiguration
+public class TenantConfiguration : MasterEntityConfiguration, IEntityTypeConfiguration<Tenant>
 {
     public void Configure(EntityTypeBuilder<Tenant> builder)
     {

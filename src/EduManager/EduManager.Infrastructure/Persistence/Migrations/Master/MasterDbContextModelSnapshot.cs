@@ -141,7 +141,8 @@ namespace EduManager.Infrastructure.Persistence.Migrations.Master
 
                     b.Property<string>("ConnectionString")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
 
                     b.Property<long>("CreateBy")
                         .HasColumnType("bigint");
@@ -151,7 +152,8 @@ namespace EduManager.Infrastructure.Persistence.Migrations.Master
 
                     b.Property<string>("Email")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
 
                     b.Property<string>("EncryptionSalt")
                         .IsRequired()
@@ -162,13 +164,20 @@ namespace EduManager.Infrastructure.Persistence.Migrations.Master
 
                     b.Property<string>("Mobile")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
 
                     b.Property<string>("Slug")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("SlugCode")
                         .IsRequired()
                         .HasColumnType("text");
 
@@ -182,6 +191,17 @@ namespace EduManager.Infrastructure.Persistence.Migrations.Master
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Email")
+                        .IsUnique();
+
+                    b.HasIndex("Id");
+
+                    b.HasIndex("Mobile")
+                        .IsUnique();
+
+                    b.HasIndex("Slug")
+                        .IsUnique();
 
                     b.ToTable("Tenants");
                 });

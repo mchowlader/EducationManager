@@ -7,6 +7,7 @@ namespace EduManager.Domain.Entities.Master
     {
         public string Name { get; set; } = string.Empty;
         public string Slug { get; set; } = string.Empty;
+        public string SlugCode { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty ;
         public string Mobile { get; set; } = string.Empty;
         public string ConnectionString { get; set; } = string.Empty;

@@ -33,4 +33,9 @@
     <ProjectReference Include="..\EduManager.Domain\EduManager.Domain.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Persistence\Migrations\EduTenants\" />
+    <Folder Include="Persistence\Migrations\Master\" />
+  </ItemGroup>
+
 </Project>

@@ -1,5 +1,6 @@
 ﻿using EduManager.Domain.Common;
 using EduManager.Domain.Entities;
+using EduManager.Infrastructure.Persistence.Configurations.EduTenants;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
@@ -36,7 +37,11 @@ public class EduDbContext : DbContext
     }
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        foreach(var entityType in modelBuilder.Model.GetEntityTypes())
+        modelBuilder.ApplyConfigurationsFromAssembly(
+            Assembly.GetExecutingAssembly(),
+            t => t.IsSubclassOf(typeof(EduEntityConfiguration)));
+
+        foreach (var entityType in modelBuilder.Model.GetEntityTypes())
         {
             if (typeof(BaseEntity).IsAssignableFrom(entityType.ClrType))
             {
@@ -45,7 +50,6 @@ public class EduDbContext : DbContext
             }
         }
 
-        modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
         base.OnModelCreating(modelBuilder);
     }
 
@@ -83,7 +87,6 @@ public class EduDbContext : DbContext
     public DbSet<Classes> Classes => Set<Classes>();
     public DbSet<Student> Students => Set<Student>();
     public DbSet<Teacher> Teachers => Set<Teacher>();
-    public DbSet<Address> Addresss => Set<Address>();
     public DbSet<Permission> Permissions => Set<Permission>();
     public DbSet<Role> Roles => Set<Role>();
     public DbSet<RolePermission> RolePermissions => Set<RolePermission>();
