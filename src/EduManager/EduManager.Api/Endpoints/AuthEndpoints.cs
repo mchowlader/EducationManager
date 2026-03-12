@@ -18,7 +18,7 @@ public class AuthEndpoints : IEndpoints
             .ReportApiVersions()
             .Build();
 
-        var group = app.MapGroup("/api/v/{version:apiVersion}/auth")
+        var group = app.MapGroup("/api/v{version:apiVersion}/auth")
             .WithApiVersionSet(versionSet)
             .WithTags("Auth")
             .WithMetadata(new MasterRouteAttribute());

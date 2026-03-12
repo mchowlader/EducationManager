@@ -41,7 +41,7 @@ public abstract class BaseEndPoints<TEntity, TCreateDto, TUpdateDto, TResponseDt
 
         var versionSet = versionBuilder.Build();
 
-        var group = app.MapGroup($"/api/v/{{version:apiVersion}}/{Route}")
+        var group = app.MapGroup($"/api/v{{version:apiVersion}}/{Route}")
             .WithApiVersionSet(versionSet)
             .WithTags(EntityName);
 

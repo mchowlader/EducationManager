@@ -18,7 +18,7 @@ public class TenantEndpoints : IEndpoints
             .ReportApiVersions()
             .Build();
 
-        var group = app.MapGroup("/api/v/{version:apiVersion}/tenants")
+        var group = app.MapGroup("/api/v{version:apiVersion}/tenants")
             .WithApiVersionSet(versionSet)
             .WithTags("Tenants")
             .WithMetadata(new MasterRouteAttribute())

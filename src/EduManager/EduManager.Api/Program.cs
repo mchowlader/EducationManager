@@ -72,13 +72,17 @@ builder.Services.AddRateLimiter(option =>
     };
 });
 
-
 var app = builder.Build();
-app.UseSerilogRequestLogging();
+
+app.UseSerilogRequestLogging(); 
 app.UseMiddleware<GlobalExceptionMiddleware>();
 app.UseTenantMiddleware();
 app.UseRateLimiter();
 app.MapDefaultEndpoints();
+app.UseHttpsRedirection();
+app.UseAuthentication();
+app.UseAuthorization();
+app.MapAllEndpoints();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -86,10 +90,6 @@ if (app.Environment.IsDevelopment())
     var provider = app.Services.GetRequiredService<IApiVersionDescriptionProvider>();
     app.UseSwaggerWithVersioning(provider);
 }
-app.UseHttpsRedirection();
-app.UseAuthentication();
-app.UseAuthorization();
-app.MapAllEndpoints();
 try
 {
     app.Run();

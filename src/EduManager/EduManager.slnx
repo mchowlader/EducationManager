@@ -8,5 +8,6 @@
   <Project Path="EduManager.Application/EduManager.Application.csproj" />
   <Project Path="EduManager.Domain/EduManager.Domain.csproj" />
   <Project Path="EduManager.Infrastructure/EduManager.Infrastructure.csproj" />
+  <Project Path="EduManager.Migrator/EduManager.Migrator.csproj" Id="c19d7fe9-09e2-44a5-ac55-8b52f0a7f1b8" />
   <Project Path="EduManager.ServiceDefaults/EduManager.ServiceDefaults.csproj" />
 </Solution>
