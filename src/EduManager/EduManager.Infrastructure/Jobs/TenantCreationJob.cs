@@ -4,7 +4,6 @@ using EduManager.Domain.Enums;
 using EduManager.Domain.Interfaces;
 using EduManager.Domain.Interfaces.Repositories;
 using EduManager.Infrastructure.Persistence;
-using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Npgsql;
@@ -16,7 +15,7 @@ public class TenantCreationJob(
     ITenantRepository repository
     , IMasterUnitOfWork unitOfWork
     , IConfiguration configuration
-    , IEncryptionService encryption) 
+    , IEncryptionService encryption)
     : ITenantCreationJob
 {
     private readonly ITenantRepository _repository = repository;
@@ -31,7 +30,7 @@ public class TenantCreationJob(
         if (tenant is null) return;
 
         await CreateDatabaseAsync(tenant.Slug);
-        
+
         var superAdminConn = BuildSuperAdminConnectionString(tenant.Slug);
 
         var migrationSuccess = await ApplyMigrationsAsync(superAdminConn);

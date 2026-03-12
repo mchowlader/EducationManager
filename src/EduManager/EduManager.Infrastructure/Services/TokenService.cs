@@ -22,7 +22,7 @@ public class TokenService(IConfiguration configuration) : ITokenService
             new(ClaimTypes.Role, admin.Role.ToString()),  // Owner / SuperAdmin / Support
             new("tenantId", string.Empty)
         };
-
+            
         return GenerateToken(claims);
     }
     private TokenResponseDto GenerateToken(List<Claim> claims)
@@ -45,10 +45,8 @@ public class TokenService(IConfiguration configuration) : ITokenService
             TokenType: "Bearer",
             ExpiresIn: (int)(expiry - DateTime.UtcNow).TotalSeconds);
     }
-
-    private string GenerateRefreshToken() =>
+    public string GenerateRefreshToken() =>
         Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
-
     public string GenerateToken(User user, IEnumerable<string> permissions)
     {
         List<Claim> claims =

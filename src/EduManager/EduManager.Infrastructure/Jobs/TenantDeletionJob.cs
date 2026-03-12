@@ -1,7 +1,6 @@
 ﻿using EduManager.Application.Interfaces;
 using EduManager.Domain.Interfaces;
 using EduManager.Domain.Interfaces.Repositories;
-using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Npgsql;

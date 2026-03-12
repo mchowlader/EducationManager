@@ -8,4 +8,5 @@ public interface ITokenService
 {
     TokenResponseDto GenerateSuperAdminToken(AdminUser admin);
     string GenerateToken(User user, IEnumerable<string> permissions);
+    string GenerateRefreshToken();
 }

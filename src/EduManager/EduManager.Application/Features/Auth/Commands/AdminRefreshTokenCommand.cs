@@ -4,4 +4,5 @@ using MediatR;
 
 namespace EduManager.Application.Features.Auth.Commands;
 
-public record AdminLoginCommand(AdminLoginDto Dto) : IRequest<Result<TokenResponseDto>>;
+public record AdminRefreshTokenCommand(RefreshTokenDto dto) 
+    : IRequest<Result<TokenResponseDto>>;
