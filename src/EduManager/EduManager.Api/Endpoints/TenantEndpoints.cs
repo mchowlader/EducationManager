@@ -21,38 +21,44 @@ public class TenantEndpoints : IEndpoints
         var group = app.MapGroup("/api/v/{version:apiVersion}/tenants")
             .WithApiVersionSet(versionSet)
             .WithTags("Tenants")
-            .WithMetadata(new MasterRouteAttribute()); ;
+            .WithMetadata(new MasterRouteAttribute())
+            .RequireAuthorization();
 
         group.MapPost("/", CreateTenantHandlerV1)
+            .RequireAuthorization("MasterAdminAccess")  // Owner + SuperAdmin
             .WithName("CreateTenantV1")
             .WithSummary("Create Tenant")
             .WithDescription("Creates a new tenant and returns the created resource")
             .MapToApiVersion(1, 0);
 
         group.MapPatch("/{id:long}", UpdateTenantHandlerV1)
+            .RequireAuthorization("MasterAdminAccess")  // Owner + SuperAdmin
             .WithName("UpdateTenantV1")
             .WithSummary("Update Tenant")
-            .WithDescription("Update an exiting tenant and returns the updated resource")
+            .WithDescription("Update an existing tenant and returns the updated resource")
             .MapToApiVersion(1, 0);
 
         group.MapGet("/", GetAllTenantHandlerV1)
-           .RequireRateLimiting("strict")
-           .WithName("GetAllTenantV1")
-           .WithSummary("Gat All Tenants")
-           .WithDescription("Returns a paginated list of all tenants. Use pageNumber and pageSize to control pagination.")
-           .MapToApiVersion(1, 0);
+            .RequireAuthorization("MasterViewAccess")   // Owner + SuperAdmin + Support
+            .RequireRateLimiting("strict")
+            .WithName("GetAllTenantV1")
+            .WithSummary("Get All Tenants")
+            .WithDescription("Returns a paginated list of all tenants.")
+            .MapToApiVersion(1, 0);
 
         group.MapGet("/{id:long}", GetByIdTenantHandlerV1)
+            .RequireAuthorization("MasterViewAccess")   // Owner + SuperAdmin + Support
             .WithName("GetByIdTenantV1")
-            .WithSummary("Gat a Tenant")
+            .WithSummary("Get a Tenant")
             .WithDescription("Returns a Tenant record")
             .MapToApiVersion(1, 0);
 
         group.MapDelete("/{id:long}", DeleteHandlerV1)
-           .WithName("DeleteV1")
-           .WithSummary("Delete a Tenant")
-           .WithDescription("Delete a Tenant record")
-           .MapToApiVersion(1, 0);
+            .RequireAuthorization("MasterOwnerOnly")    // Only Owner
+            .WithName("DeleteV1")
+            .WithSummary("Delete a Tenant")
+            .WithDescription("Delete a Tenant record")
+            .MapToApiVersion(1, 0);
     }
 
     private static async Task<

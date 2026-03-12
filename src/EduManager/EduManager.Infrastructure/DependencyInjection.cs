@@ -96,15 +96,27 @@ public static class DependencyInjection
 
         services.AddAuthorization(opt =>
         {
+            // Master Admin Policies
+            opt.AddPolicy("MasterOwnerOnly", policy =>
+                policy.RequireRole("Owner"));
+
+            opt.AddPolicy("MasterAdminAccess", policy =>
+                policy.RequireRole("Owner", "SuperAdmin"));
+
+            opt.AddPolicy("MasterViewAccess", policy =>
+                policy.RequireRole("Owner", "SuperAdmin", "Support"));
+
+            // Tenant Permission Policies — BaseEndpoints er jonno
             var permissions = typeof(Permissions)
-            .GetFields()
-            .Where(f => f.IsLiteral)
-            .Select(f => f.GetValue(null)?.ToString())
-            .Where(p => p is not null);
+                .GetFields()
+                .Where(f => f.IsLiteral)
+                .Select(f => f.GetValue(null)?.ToString())
+                .Where(p => p is not null);
 
             foreach (var permission in permissions)
             {
-                opt.AddPolicy(permission!, policy => policy.Requirements.Add(new PermissionRequirement(permission!)));
+                opt.AddPolicy(permission!, policy =>
+                    policy.Requirements.Add(new PermissionRequirement(permission!)));
             }
         });
 
