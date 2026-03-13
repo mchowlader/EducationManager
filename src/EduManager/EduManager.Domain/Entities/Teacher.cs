@@ -2,7 +2,7 @@
 
 namespace EduManager.Domain.Entities;
 
-public class Teacher : BaseEntity
+public class Teacher : BaseEntity, ITenantEntity
 {
     public string TeacherCode { get; set; } = string.Empty;
     public string Designation { get; set; } = string.Empty;

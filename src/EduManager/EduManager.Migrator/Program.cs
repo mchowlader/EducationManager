@@ -10,7 +10,9 @@ using Microsoft.Extensions.Logging;
 var host = Host.CreateDefaultBuilder(args)
     .ConfigureAppConfiguration((context, config) =>
     {
-        config.AddJsonFile("appsettings.json", optional: false);
+        config.AddJsonFile(
+            Path.Combine(AppContext.BaseDirectory, "appsettings.json"),
+            optional: false);
     })
     .ConfigureServices((context, services) =>
     {
@@ -21,6 +23,7 @@ var host = Host.CreateDefaultBuilder(args)
             opt.UseNpgsql(connectionString));
 
         services.AddScoped<IEncryptionService, EncryptionService>();
+        services.AddScoped<ITenantSeeder, TenantSeeder>();
         services.AddScoped<ITenantMigrationService, TenantMigrationService>();
     })
     .Build();

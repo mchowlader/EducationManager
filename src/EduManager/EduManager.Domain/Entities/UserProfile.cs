@@ -2,7 +2,7 @@
 
 namespace EduManager.Domain.Entities;
 
-public class UserProfile : BaseEntity
+public class UserProfile : BaseEntity, ITenantEntity
 {
     public string FullName { get; set; } = string.Empty;
     public string Mobile { get; set; } = string.Empty;

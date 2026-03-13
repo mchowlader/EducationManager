@@ -2,7 +2,7 @@
 
 namespace EduManager.Domain.Entities;
 
-public class Section : BaseEntity
+public class Section : BaseEntity, ITenantEntity
 {
     public string Name { get; set; } = string.Empty;
     public long ClassId { get; set; }

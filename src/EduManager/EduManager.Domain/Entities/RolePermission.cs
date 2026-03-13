@@ -2,11 +2,10 @@
 
 namespace EduManager.Domain.Entities;
 
-public class RolePermission : BaseEntity
+public class RolePermission : BaseEntity, ITenantEntity
 {
     public long RoleId { get; set; }
     public Role Role { get; set; } = null!;
-    public long PermissionId { get; set; }
-    public Permission Permission { get; set; } = null!;
+    public string Permission { get; set; } = string.Empty;
 
 }

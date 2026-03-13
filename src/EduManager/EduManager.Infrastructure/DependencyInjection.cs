@@ -36,25 +36,6 @@ public static class DependencyInjection
         services.AddDbContext<MasterDbContext>(options =>
             options.UseNpgsql(configuration.GetConnectionString("MasterDBConnection")));
 
-        //services.AddScoped<EduDbContext>(provider =>
-        //{
-        //    var httpContext = provider.GetRequiredService<IHttpContextAccessor>().HttpContext;
-        //    var masterDB = provider.GetRequiredService<MasterDbContext>();
-
-        //    var tenantSlug = httpContext?.Request?.Host.Host.Split(':')[0] ?? string.Empty;
-        //    var tenant = masterDB.Tenants.FirstOrDefault(t => t.Slug == tenantSlug && t.Status == TenantStatus.Active);
-        //    var optionsBuilder = new DbContextOptionsBuilder<EduDbContext>();
-
-        //    if (tenant is null)
-        //    {
-        //        optionsBuilder.UseInMemoryDatabase("TenantMissing");
-        //        return new EduDbContext(optionsBuilder.Options);
-        //    }
-
-        //    optionsBuilder.UseSqlServer(tenant.ConnectionString);
-
-        //    return new EduDbContext(optionsBuilder.Options);
-        //});
         services.AddDbContext<EduDbContext>();
 
         //UnitOfWork
@@ -119,6 +100,9 @@ public static class DependencyInjection
                     policy.Requirements.Add(new PermissionRequirement(permission!)));
             }
         });
+
+        services.AddScoped<ITenantSeeder, TenantSeeder>();
+        services.AddScoped<ITenantMigrationService, TenantMigrationService>();
 
         return services;
     }

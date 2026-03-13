@@ -18,6 +18,10 @@ public class RoleConfiguration : EduEntityConfiguration, IEntityTypeConfiguratio
             .HasMaxLength(100)
             .IsRequired();
 
+        builder.Property(x => x.IsDefault)
+            .IsRequired()
+            .HasDefaultValue(false);
+
         // Indexes
         builder.HasIndex(x => x.Name)
             .IsUnique()

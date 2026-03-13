@@ -2,7 +2,7 @@
 
 namespace EduManager.Domain.Entities;
 
-public class Student : BaseEntity
+public class Student : BaseEntity, ITenantEntity
 {
     public string StudentCode { get; set; } = string.Empty;
     public int ClassRoll { get; set; }

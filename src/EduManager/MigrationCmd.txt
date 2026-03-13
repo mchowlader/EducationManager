@@ -1,3 +1,5 @@
+dotnet run --project src/EduManager/EduManager.Migrator
+
 # Migration
 Add-Migration AddLogsTable -Context MasterDbContext -OutputDir Persistence/Migrations/Master
 

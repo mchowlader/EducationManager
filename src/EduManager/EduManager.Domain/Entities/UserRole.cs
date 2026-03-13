@@ -2,7 +2,7 @@
 
 namespace EduManager.Domain.Entities;
 
-public class UserRole : BaseEntity
+public class UserRole : BaseEntity, ITenantEntity
 {
     public long UserId { get; set; }
     public User User { get; set; } = null!;

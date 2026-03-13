@@ -87,7 +87,7 @@ public class EduDbContext : DbContext
     public DbSet<Classes> Classes => Set<Classes>();
     public DbSet<Student> Students => Set<Student>();
     public DbSet<Teacher> Teachers => Set<Teacher>();
-    public DbSet<Permission> Permissions => Set<Permission>();
+    //public DbSet<Permission> Permissions => Set<Permission>();
     public DbSet<Role> Roles => Set<Role>();
     public DbSet<RolePermission> RolePermissions => Set<RolePermission>();
     public DbSet<User> Users => Set<User>();

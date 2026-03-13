@@ -2,7 +2,7 @@
 
 namespace EduManager.Domain.Entities;
 
-public class Classes : BaseEntity
+public class Classes : BaseEntity, ITenantEntity
 {
     public string Name { get; set; } = string.Empty;
     public string? Description { get; set; }

@@ -15,13 +15,15 @@ public class TenantCreationJob(
     ITenantRepository repository
     , IMasterUnitOfWork unitOfWork
     , IConfiguration configuration
-    , IEncryptionService encryption)
+    , IEncryptionService encryption
+    , ITenantMigrationService migrationService)
     : ITenantCreationJob
 {
     private readonly ITenantRepository _repository = repository;
     private readonly IMasterUnitOfWork _unitOfWork = unitOfWork;
     private IConfiguration _configuration = configuration;
     private readonly IEncryptionService _encryption = encryption;
+    private readonly ITenantMigrationService _migrationService = migrationService;
 
     public async Task ExecutionAsync(long tenantId)
     {
@@ -33,9 +35,11 @@ public class TenantCreationJob(
 
         var superAdminConn = BuildSuperAdminConnectionString(tenant.Slug);
 
-        var migrationSuccess = await ApplyMigrationsAsync(superAdminConn);
-
-        if (!migrationSuccess)
+        try
+        {
+            await _migrationService.MigrateSingleTenantAsync(superAdminConn);
+        }
+        catch
         {
             await UpdateStatusAsync(tenant, TenantStatus.Failed);
             return;
@@ -61,45 +65,48 @@ public class TenantCreationJob(
         await _unitOfWork.SaveChangesAsync();
     }
     private async Task<bool> CreateDatabaseAsync(string slug)
+{
+    try
     {
-        try
+        var dbName = $"Edumanager_{slug}";
+        var masterConnection = _configuration.GetConnectionString("MasterDBConnection")!;
+
+        await using var conn = new NpgsqlConnection(masterConnection);
+        await conn.OpenAsync();
+
+        await using var checkCmd = new NpgsqlCommand(
+            $"SELECT 1 FROM pg_database WHERE datname = '{dbName}'", conn);
+
+        var exists = await checkCmd.ExecuteScalarAsync();
+
+        if (exists is null)
         {
-            var dbName = $"Edumanager_{slug}";
-            var masterConnection = _configuration.GetConnectionString("MasterDBConnection")!;
-
-            await using var conn = new NpgsqlConnection(masterConnection);
-            await conn.OpenAsync();
-
-            // Check if database exists
-            await using var checkCmd = new NpgsqlCommand(
-                $"SELECT 1 FROM pg_database WHERE datname = '{dbName}'", conn);
-
-            var exists = await checkCmd.ExecuteScalarAsync();
-
-            if (exists is null)
-            {
-                await using var createCmd = new NpgsqlCommand(
-                    $"CREATE DATABASE \"{dbName}\"", conn);
-                await createCmd.ExecuteNonQueryAsync();
-            }
-
-            return true;
+            await using var createCmd = new NpgsqlCommand(
+                $"CREATE DATABASE \"{dbName}\"", conn);
+            await createCmd.ExecuteNonQueryAsync();
         }
-        catch (Exception ex)
+
+        // ← Connect to the new database and grant schema permissions
+        var tenantConn = new NpgsqlConnectionStringBuilder(masterConnection)
         {
-            //_logger.LogError(ex, "Failed to create database for slug: {Slug}", slug);
-            return false;
-        }
-    }
-    private async Task<bool> ApplyMigrationsAsync(string connectionString)
-    {
-        var optionBuilder = new DbContextOptionsBuilder<EduDbContext>();
-        optionBuilder.UseNpgsql(connectionString);
+            Database = dbName
+        };
 
-        await using var context = new EduDbContext(optionBuilder.Options, null!);
-        await context.Database.MigrateAsync();
+        await using var tenantConnection = new NpgsqlConnection(tenantConn.ConnectionString);
+        await tenantConnection.OpenAsync();
+
+        await using var grantCmd = new NpgsqlCommand(
+            $"GRANT ALL ON SCHEMA public TO \"EduManager\";", tenantConnection);
+        await grantCmd.ExecuteNonQueryAsync();
+
         return true;
     }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"CreateDatabaseAsync failed: {ex.Message}");
+        return false;
+    }
+}
     private async Task<DbUserResult> CreateDatabaseUserAsync(string slug, string connectionString)
     {
         try
@@ -134,7 +141,7 @@ public class TenantCreationJob(
         }
         catch (Exception ex)
         {
-            //logger.LogError(ex, "Failed to create database user for slug: {Slug}", slug);
+            Console.WriteLine($"FULL ERROR: {ex}");
             return new DbUserResult(false, string.Empty, string.Empty);
         }
     }
@@ -149,7 +156,8 @@ public class TenantCreationJob(
         var masterConn = _configuration.GetConnectionString("MasterDBConnection")!;
         var builder = new NpgsqlConnectionStringBuilder(masterConn)
         {
-            Database = $"Edumanager_{slug}"
+            Database = $"Edumanager_{slug}",
+            IncludeErrorDetail = true
         };
         return builder.ConnectionString;
     }
