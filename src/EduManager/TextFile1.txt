@@ -1,0 +1,215 @@
+EduManager Project — Complete Summary
+Business Overview
+Multi-tenant SaaS platform for educational institutions (schools). Each school (tenant) gets isolated database. Super Admin manages tenants, Tenant Admin manages their own school.
+
+Architecture
+
+Clean Architecture — Domain, Application, Infrastructure, Api layers
+Projects: EduManager.Api, EduManager.Application, EduManager.Domain, EduManager.Infrastructure, EduManager.AppHost, EduManager.ServiceDefaults, EduManager.Migrator
+Database: PostgreSQL
+ORM: Entity Framework Core 10.0.3
+CQRS: MediatR
+Background Jobs: Hangfire
+Auth: JWT Bearer + Refresh Token
+Validation: FluentValidation
+API Versioning: Asp.Versioning
+
+
+Database Design
+Two DB Types:
+
+MasterDB (EduManager_Master) — Tenants, AdminUsers, Logs
+TenantDB (Edumanager_{slug}) — Per tenant isolated DB
+
+Master DB Entities:
+Tenant: Id, Name, Slug, SlugCode, Email, Mobile, ConnectionString, EncryptionSalt, Status
+AdminUser: Id, FullName, Email, PasswordHash, IsActive, Role(Owner=1/SuperAdmin=2/Support=3), RefreshToken, RefreshTokenExpiry
+Log: Serilog sink table
+Tenant DB Entities:
+User: UserCode(trigger), Email, PasswordHash, IsActive, RefreshToken, RefreshTokenExpiry
+UserProfile: FullName, Mobile, DateOfBirth, Address(Owned), UserId
+Student: StudentCode(trigger), ClassRoll, IsActive, SectionId, UserId
+Teacher: TeacherCode(trigger), Designation, IsActive, UserId
+Classes: Name, Description
+Section: Name, Capacity, ClassId
+Role: Name, IsDefault
+RolePermission: RoleId, Permission(string)
+UserRole: UserId, RoleId
+Address(Owned Entity): Division, District, Thana, City, PostalCode
+DB Triggers (PostgreSQL):
+trg_generate_user_code → UserCode = SlugCode + "U" + 00001
+trg_generate_student_code → StudentCode = SlugCode + "S" + 00001
+trg_generate_teacher_code → TeacherCode = SlugCode + "T" + 00001
+tenant_config table → slug_code store করে
+
+Key Design Decisions
+✅ Soft Delete everywhere (IsDelete = true)
+✅ Hard Delete only after 90-day grace period (Hangfire)
+✅ AES-GCM encryption for ConnectionString (slug + salt + MasterSecret)
+✅ BCrypt workFactor:12 for passwords
+✅ JWT Access Token 30min, Refresh Token 7days (rotation)
+✅ Permission table নেই — RolePermission এ string store
+✅ Permissions class এ static constants (Permissions.For("Students", Permissions.View))
+✅ ITenantEntity marker interface for permission seeding
+✅ MasterRouteAttribute — TenantMiddleware skip করে
+✅ Tenant identified by subdomain (priority) or X-Tenant-Slug header
+✅ 404 for all tenant issues (prevents enumeration)
+✅ ErrorCode only on 500 errors
+✅ ConfigureAwait(false) not needed in ASP.NET Core
+✅ EduEntityConfiguration / MasterEntityConfiguration marker — separate migrations
+
+Multi-Tenancy Implementation
+TenantMiddleware:
+├── SystemPaths skip (/hangfire, /swagger, /health)
+├── MasterRouteAttribute check → skip
+├── Slug extract (subdomain priority, X-Tenant-Slug fallback)
+├── Master DB তে Tenant lookup
+├── ConnectionString decrypt
+└── TenantContext → HttpContext.Items["TenantContext"]
+
+EduDbContext:
+└── OnConfiguring → HttpContext.Items["TenantContext"] থেকে ConnectionString নেয়
+
+ITenantContext / TenantContextService:
+└── HttpContext.Items["TenantContext"] থেকে TenantId, Slug, ConnectionString expose করে
+
+Tenant Lifecycle
+Create → TenantCreationJob (Hangfire):
+    1. CreateDatabaseAsync → PostgreSQL DB create + GRANT schema
+    2. MigrateOnlyAsync → EF Core migrations apply
+    3. InsertTenantConfigAsync → tenant_config এ slug_code insert
+    4. SeedOnlyAsync → Roles, RolePermissions, TenantAdmin User seed
+    5. CreateDatabaseUserAsync → Isolated DB user create
+    6. ConnectionString encrypt → Status = Active
+
+Delete → Status = PendingDeletion, IsDelete = true
+       → Hangfire schedules TenantDeletionJob after 90 days
+       → Drop DB, Drop Role, Hard delete from Master
+
+Auth System
+Two separate flows:
+Super Admin (Master DB):
+├── POST /api/v1/auth/admin/login
+├── POST /api/v1/auth/admin/refresh
+├── POST /api/v1/auth/admin/logout
+└── JWT claims: Sub, Email, Name, Role, tenantId=""
+
+Tenant User (Tenant DB):
+├── POST /api/v1/auth/login
+├── POST /api/v1/auth/refresh (pending)
+├── POST /api/v1/auth/logout (pending)
+└── JWT claims: Sub, Email, tenantId, permissions[]
+Master Admin Policies:
+MasterOwnerOnly → Owner
+MasterAdminAccess → Owner, SuperAdmin
+MasterViewAccess → Owner, SuperAdmin, Support
+Tenant Permission:
+JWT token এ permissions[] array
+Request এ DB hit নেই — token থেকে check
+Refresh করলে নতুন permissions পাবে
+
+Tenant Migration Management
+EduManager.Migrator (Console App):
+├── dotnet run --project EduManager.Migrator
+├── Master DB থেকে Active Tenants নেয়
+├── Super Admin connection দিয়ে migrate করে
+└── __EFMigrationsHistory check → pending only apply
+
+New Migration workflow:
+1. Add-Migration ... -Context EduDbContext
+2. dotnet run --project EduManager.Migrator
+3. সব tenant migrate হয়
+
+Base Endpoints
+csharpBaseEndPoints<TEntity, TCreateDto, TUpdateDto, TResponseDto>
+├── GET /  → ViewPermission
+├── GET /{id} → ViewPermission
+├── POST / → CreatePermission
+├── PATCH /{id} → UpdatePermission
+└── DELETE /{id} → DeletePermission
+
+Permission auto-generate: Permissions.For(EntityName, action)
+e.g. Students entity → "Students.View", "Students.Create"
+```
+
+---
+
+### Seed Data (Per Tenant)
+```
+Roles: TenantAdmin, Teacher, Student (IsDefault=true)
+
+RolePermissions:
+TenantAdmin → সব ITenantEntity র সব permission (reflection)
+Teacher → Students.View/Create/Update, Classes.View, Sections.View
+Student → Students.View
+
+TenantAdmin User:
+├── Email = Tenant.Email
+├── Password = CreateTenantDto.Password
+└── Role = TenantAdmin
+```
+
+---
+
+### Implemented ✅
+```
+✅ Clean Architecture setup
+✅ PostgreSQL migration
+✅ Multi-tenant middleware
+✅ EduDbContext dynamic connection
+✅ Tenant CRUD (Create/Update/Delete/GetAll/GetById)
+✅ Tenant lifecycle (Creation/Deletion jobs)
+✅ Super Admin Auth (Login/Refresh/Logout)
+✅ JWT + Refresh Token rotation
+✅ FluentValidation filter
+✅ Rate limiting (global + strict)
+✅ Soft delete
+✅ Base endpoints (generic CRUD)
+✅ Role/Permission system (DB + static constants)
+✅ Tenant DB seed (Roles, Permissions, TenantAdmin User)
+✅ EduManager.Migrator console tool
+✅ Tenant User Login
+```
+
+---
+
+### Pending ⏳
+```
+⏳ Tenant User Refresh Token
+⏳ Tenant User Logout
+⏳ RBAC endpoints (Role/Permission management by TenantAdmin)
+⏳ Student CRUD
+⏳ Teacher CRUD
+⏳ Classes CRUD
+⏳ Section CRUD
+⏳ Swagger Auth + Version support
+⏳ Response Compression (deferred)
+⏳ Email service (password delivery)
+⏳ Tenant User Login test
+```
+
+---
+
+### Important Files/Locations
+```
+Domain/Constants/Permissions.cs → Permission constants
+Domain/Attributes/MasterRouteAttribute.cs
+Domain/Common/ITenantEntity.cs → marker interface
+Infrastructure/Middleware/TenantMiddleware.cs
+Infrastructure/Jobs/TenantCreationJob.cs
+Infrastructure/Jobs/TenantDeletionJob.cs
+Infrastructure/Services/TenantMigrationService.cs
+Infrastructure/Services/TenantSeeder.cs
+Infrastructure/Services/EncryptionService.cs (AES-GCM)
+Infrastructure/Services/TokenService.cs
+Infrastructure/Persistence/EduDbContext.cs
+Infrastructure/Persistence/MasterDbContext.cs
+Infrastructure/Persistence/Configurations/Master/ → MasterEntityConfiguration
+Infrastructure/Persistence/Configurations/Edu/ → EduEntityConfiguration
+Infrastructure/Persistence/Migrations/Master/
+Infrastructure/Persistence/Migrations/EduTenants/
+Api/Endpoints/AuthEndpoints.cs
+Api/Endpoints/TenantEndpoints.cs
+EduManager.Migrator/Program.cs
+
+এই summary copy করে নতুন session এ paste করো — আমি সব বুঝতে পারবো।

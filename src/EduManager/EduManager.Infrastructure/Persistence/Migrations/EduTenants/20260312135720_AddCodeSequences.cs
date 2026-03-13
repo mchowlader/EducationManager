@@ -57,7 +57,7 @@ namespace EduManager.Infrastructure.Persistence.Migrations.EduTenants
                     NEW."StudentCode" := slug_code || 'S' || LPAD(seq_num::TEXT, 5, '0');
                     RETURN NEW;
                 END;
-                $$ LANGUAGE plpgsql;
+                $$ LANGUAGE plpgsql;    
 
                 CREATE TRIGGER trg_generate_student_code
                     BEFORE INSERT ON "Students"

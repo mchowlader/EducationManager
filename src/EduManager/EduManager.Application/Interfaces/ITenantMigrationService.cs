@@ -3,5 +3,6 @@
 public interface ITenantMigrationService
 {
     Task MigrateAllTenantsAsync();
-    Task MigrateSingleTenantAsync(string connectionString);
+    Task MigrateOnlyAsync(string tenantDbconnectionString);
+    Task SeedOnlyAsync(string connectionString, string email, string password);
 }

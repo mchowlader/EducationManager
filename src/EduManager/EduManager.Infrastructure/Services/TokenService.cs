@@ -22,7 +22,7 @@ public class TokenService(IConfiguration configuration) : ITokenService
             new(ClaimTypes.Role, admin.Role.ToString()),  // Owner / SuperAdmin / Support
             new("tenantId", string.Empty)
         };
-            
+
         return GenerateToken(claims);
     }
     private TokenResponseDto GenerateToken(List<Claim> claims)
@@ -47,25 +47,17 @@ public class TokenService(IConfiguration configuration) : ITokenService
     }
     public string GenerateRefreshToken() =>
         Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
-    public string GenerateToken(User user, IEnumerable<string> permissions)
+
+    public TokenResponseDto GenerateTenantUserToken(User user, IEnumerable<string> permissions, long tenantId)
     {
         List<Claim> claims =
         [
-            new(ClaimTypes.NameIdentifier, user.Id.ToString()),
-            new(ClaimTypes.Email, user.Email),
+            new(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+            new(JwtRegisteredClaimNames.Email, user.Email),
+            new("tenantId", tenantId.ToString()),
             ..permissions.Select(p => new Claim("permission", p))
         ];
 
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:Key"]!));
-
-        var token = new JwtSecurityToken(
-            issuer: configuration["Jwt:Issuer"],
-            audience: configuration["Jwt:Audience"],
-            claims: claims,
-            expires: DateTime.UtcNow.AddHours(8),
-            signingCredentials: new SigningCredentials(key, SecurityAlgorithms.HmacSha256)
-        );
-
-        return new JwtSecurityTokenHandler().WriteToken(token);
+        return GenerateToken(claims);
     }
 }

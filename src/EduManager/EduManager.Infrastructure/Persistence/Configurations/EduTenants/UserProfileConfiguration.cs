@@ -24,7 +24,7 @@ public class UserProfileConfiguration : EduEntityConfiguration, IEntityTypeConfi
 
         builder.Property(x => x.DateOfBirth)
             .HasColumnType("timestamp with time zone")
-            .IsRequired();
+            .IsRequired(false);
 
         // Owned Entity — Address
         builder.OwnsOne(x => x.Address, address =>

@@ -3,7 +3,6 @@ using EduManager.Domain.Entities.Master;
 using EduManager.Domain.Enums;
 using EduManager.Domain.Interfaces;
 using EduManager.Domain.Interfaces.Repositories;
-using EduManager.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Npgsql;
@@ -25,7 +24,7 @@ public class TenantCreationJob(
     private readonly IEncryptionService _encryption = encryption;
     private readonly ITenantMigrationService _migrationService = migrationService;
 
-    public async Task ExecutionAsync(long tenantId)
+    public async Task ExecutionAsync(long tenantId, string password)
     {
         var tenant = await _repository.GetByIdAsync(tenantId);
 
@@ -35,9 +34,10 @@ public class TenantCreationJob(
 
         var superAdminConn = BuildSuperAdminConnectionString(tenant.Slug);
 
+        // Step 1: Migration only
         try
         {
-            await _migrationService.MigrateSingleTenantAsync(superAdminConn);
+            await _migrationService.MigrateOnlyAsync(superAdminConn);
         }
         catch
         {
@@ -45,9 +45,21 @@ public class TenantCreationJob(
             return;
         }
 
-        // Migration এর পরে tenant_config তে SlugCode insert করো
+        // Step 2: tenant_config insert — trigger এর জন্য লাগবে
         await InsertTenantConfigAsync(superAdminConn, tenant.SlugCode);
 
+        // Step 3: Seed — এখন trigger কাজ করবে
+        try
+        {
+            await _migrationService.SeedOnlyAsync(superAdminConn, tenant.Email, password);
+        }
+        catch
+        {
+            await UpdateStatusAsync(tenant, TenantStatus.Failed);
+            return;
+        }
+
+        // Step 4: DB User create
         var userResult = await CreateDatabaseUserAsync(tenant.Slug, superAdminConn);
 
         if (!userResult.IsSuccess)
@@ -56,95 +68,96 @@ public class TenantCreationJob(
             return;
         }
 
-        var plainConnectionString = BuildIsolatedConnectionString(tenant.Slug, userResult.UserName, userResult.Password);
-        tenant.ConnectionString = _encryption.Encrypt(plainConnectionString, tenant.Slug, tenant.EncryptionSalt);
+        var plainConnectionString = BuildIsolatedConnectionString(
+            tenant.Slug, userResult.UserName, userResult.Password);
+        tenant.ConnectionString = _encryption.Encrypt(
+            plainConnectionString, tenant.Slug, tenant.EncryptionSalt);
         tenant.Status = TenantStatus.Active;
 
         _repository.Update(tenant);
-
         await _unitOfWork.SaveChangesAsync();
     }
     private async Task<bool> CreateDatabaseAsync(string slug)
-{
-    try
-    {
-        var dbName = $"Edumanager_{slug}";
-        var masterConnection = _configuration.GetConnectionString("MasterDBConnection")!;
-
-        await using var conn = new NpgsqlConnection(masterConnection);
-        await conn.OpenAsync();
-
-        await using var checkCmd = new NpgsqlCommand(
-            $"SELECT 1 FROM pg_database WHERE datname = '{dbName}'", conn);
-
-        var exists = await checkCmd.ExecuteScalarAsync();
-
-        if (exists is null)
-        {
-            await using var createCmd = new NpgsqlCommand(
-                $"CREATE DATABASE \"{dbName}\"", conn);
-            await createCmd.ExecuteNonQueryAsync();
-        }
-
-        // ← Connect to the new database and grant schema permissions
-        var tenantConn = new NpgsqlConnectionStringBuilder(masterConnection)
-        {
-            Database = dbName
-        };
-
-        await using var tenantConnection = new NpgsqlConnection(tenantConn.ConnectionString);
-        await tenantConnection.OpenAsync();
-
-        await using var grantCmd = new NpgsqlCommand(
-            $"GRANT ALL ON SCHEMA public TO \"EduManager\";", tenantConnection);
-        await grantCmd.ExecuteNonQueryAsync();
-
-        return true;
-    }
-    catch (Exception ex)
-    {
-        Console.WriteLine($"CreateDatabaseAsync failed: {ex.Message}");
-        return false;
-    }
-}
-    private async Task<DbUserResult> CreateDatabaseUserAsync(string slug, string connectionString)
     {
         try
         {
-            var userName = $"edu_{slug}_user";
-            var password = GeneratePassword();
             var dbName = $"Edumanager_{slug}";
+            var masterConnection = _configuration.GetConnectionString("MasterDBConnection")!;
 
-            await using var conn = new NpgsqlConnection(connectionString);
+            await using var conn = new NpgsqlConnection(masterConnection);
             await conn.OpenAsync();
 
-            await using var cmd = new NpgsqlCommand(
-                $"""
-            DO $$
-            BEGIN
-                IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = '{userName}') THEN
-                    CREATE ROLE "{userName}" WITH LOGIN PASSWORD '{password}';
-                END IF;
-            END
-            $$;
+            await using var checkCmd = new NpgsqlCommand(
+                $"SELECT 1 FROM pg_database WHERE datname = '{dbName}'", conn);
 
-            GRANT CONNECT ON DATABASE "{dbName}" TO "{userName}";
-            GRANT USAGE ON SCHEMA public TO "{userName}";
-            GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO "{userName}";
-            ALTER DEFAULT PRIVILEGES IN SCHEMA public
-                GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO "{userName}";
-            """, conn);
+            var exists = await checkCmd.ExecuteScalarAsync();
 
-            await cmd.ExecuteNonQueryAsync();
+            if (exists is null)
+            {
+                await using var createCmd = new NpgsqlCommand(
+                    $"CREATE DATABASE \"{dbName}\"", conn);
+                await createCmd.ExecuteNonQueryAsync();
+            }
 
-            return new DbUserResult(true, userName, password);
+            // ← Connect to the new database and grant schema permissions
+            var tenantConn = new NpgsqlConnectionStringBuilder(masterConnection)
+            {
+                Database = dbName
+            };
+
+            await using var tenantConnection = new NpgsqlConnection(tenantConn.ConnectionString);
+            await tenantConnection.OpenAsync();
+
+            await using var grantCmd = new NpgsqlCommand(
+                $"GRANT ALL ON SCHEMA public TO \"EduManager\";", tenantConnection);
+            await grantCmd.ExecuteNonQueryAsync();
+
+            return true;
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"FULL ERROR: {ex}");
-            return new DbUserResult(false, string.Empty, string.Empty);
+            Console.WriteLine($"CreateDatabaseAsync failed: {ex.Message}");
+            return false;
         }
     }
+        private async Task<DbUserResult> CreateDatabaseUserAsync(string slug, string connectionString)
+        {
+            try
+            {
+                var userName = $"edu_{slug}_user";
+                var password = GeneratePassword();
+                var dbName = $"Edumanager_{slug}";
+
+                await using var conn = new NpgsqlConnection(connectionString);
+                await conn.OpenAsync();
+
+                await using var cmd = new NpgsqlCommand(
+                    $"""
+                DO $$
+                BEGIN
+                    IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = '{userName}') THEN
+                        CREATE ROLE "{userName}" WITH LOGIN PASSWORD '{password}';
+                    END IF;
+                END
+                $$;
+
+                GRANT CONNECT ON DATABASE "{dbName}" TO "{userName}";
+                GRANT USAGE ON SCHEMA public TO "{userName}";
+                GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO "{userName}";
+                ALTER DEFAULT PRIVILEGES IN SCHEMA public
+                    GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO "{userName}";
+                """, conn);
+
+                await cmd.ExecuteNonQueryAsync();
+
+                return new DbUserResult(true, userName, password);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"FULL ERROR: {ex}");
+                return new DbUserResult(false, string.Empty, string.Empty);
+            }
+        }
     private async Task UpdateStatusAsync(Tenant tenant, TenantStatus status)
     {
         tenant.Status = status;

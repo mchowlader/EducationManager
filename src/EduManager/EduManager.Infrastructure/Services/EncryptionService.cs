@@ -31,7 +31,8 @@ public class EncryptionService(IConfiguration configuration) : IEncryptionServic
 
         aesGcm.Decrypt(iv, cipherBytes, tag, plainBytes);
 
-        return Encoding.UTF8.GetString(plainBytes);
+        var ddd= Encoding.UTF8.GetString(plainBytes);
+        return ddd;
     }
 
     public string Encrypt(string plainText, string slug, string salt)

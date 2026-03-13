@@ -3,19 +3,25 @@ dotnet run --project src/EduManager/EduManager.Migrator
 # Migration
 Add-Migration AddLogsTable -Context MasterDbContext -OutputDir Persistence/Migrations/Master
 
-Add-Migration InitalMigration -Context EduDbContext -OutputDir Persistence/Migrations/Tenants
+Add-Migration InitalMigration -Context EduDbContext -OutputDir Persistence/Migrations/EduTenants
 
 # Update
 Update-Database -Context MasterDbContext
 
 {
-	"name": "Kalmegha High School",
-	"slug": "Kalmegha",
-	"email": "kalmegha@gmail.com",
-	"mobile": "01710025025"
+  "name": "Hatempur High School",
+  "slug": "Hatempur",
+  "email": "hatempur@gmail.com",
+  "mobile": "01710025020",
+  "password": "Admin@123"
 }
 
 {
   "email": "admin@edumanager.com",
+  "password": "Admin@123"
+}
+
+{
+  "emailOrCode": "HATU00001",
   "password": "Admin@123"
 }

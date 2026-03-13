@@ -2,5 +2,5 @@
 
 public interface ITenantCreationJob
 {
-    Task ExecutionAsync(long tenantId);
+    Task ExecutionAsync(long tenantId, string password);
 }

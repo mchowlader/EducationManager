@@ -62,7 +62,7 @@ public class TenantMiddleware(
         }
 
         var tenant = await masterDb.Tenants
-            .FirstOrDefaultAsync(t => t.Slug == slug);
+            .FirstOrDefaultAsync(t => t.Slug.ToLower() == slug);
 
         if (tenant is null || tenant.IsDelete)
         {

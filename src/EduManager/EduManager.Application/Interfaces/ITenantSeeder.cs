@@ -2,5 +2,5 @@
 
 public interface ITenantSeeder
 {
-    Task SeedAsync(string connectionString);
+    Task SeedAsync(string tenantDbconnectionString, string email = "", string password = "");
 }

@@ -6,7 +6,7 @@ public class UserProfile : BaseEntity, ITenantEntity
 {
     public string FullName { get; set; } = string.Empty;
     public string Mobile { get; set; } = string.Empty;
-    public DateTime DateOfBirth { get; set; }
+    public DateTime? DateOfBirth { get; set; }
 
     // FK
     public long UserId { get; set; }

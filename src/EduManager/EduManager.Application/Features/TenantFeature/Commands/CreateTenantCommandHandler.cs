@@ -46,7 +46,7 @@ public class CreateTenantCommandHandler(
         await _repository.AddAsync(tenant, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-        _backgroundJob.Enqueue<ITenantCreationJob>(job => job.ExecutionAsync(tenant.Id));
+        _backgroundJob.Enqueue<ITenantCreationJob>(job => job.ExecutionAsync(tenant.Id, request.Dto.Password));
 
         return Result<TenantResponseDto>.Success(
             _mapper.Map<TenantResponseDto>(tenant), "Tenant creation initiated");

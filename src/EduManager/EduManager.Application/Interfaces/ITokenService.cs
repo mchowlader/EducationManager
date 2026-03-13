@@ -7,6 +7,6 @@ namespace EduManager.Infrastructure.Services;
 public interface ITokenService
 {
     TokenResponseDto GenerateSuperAdminToken(AdminUser admin);
-    string GenerateToken(User user, IEnumerable<string> permissions);
     string GenerateRefreshToken();
+    TokenResponseDto GenerateTenantUserToken(User user, IEnumerable<string> permissions, long tenantId);
 }
