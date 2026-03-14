@@ -30,7 +30,7 @@ public class TenantLoginCommandHandler(
         var passwordValid = user is not null &&
             _encryption.VerifyPassword(request.dto.Password, user.PasswordHash);
 
-        if (user is null || !passwordValid || !user.IsDelete)
+        if (user is null || !passwordValid || user.IsDelete || !user.IsActive)
             return Result<TokenResponseDto>.Failure("Invalid email or password.");
 
         var permissions = user.UserRoles
@@ -50,7 +50,7 @@ public class TenantLoginCommandHandler(
 
         try
         {
-            await _unitOfWork.SaveChangesAsync(cancellationToken);
+            await _unitOfWork.SaveChangesAsync(CancellationToken.None);
         }
         catch
         {
