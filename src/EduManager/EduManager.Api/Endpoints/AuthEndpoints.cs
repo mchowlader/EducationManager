@@ -61,95 +61,124 @@ public class AuthEndpoints : IEndpoints
             .AllowAnonymous()
             .MapToApiVersion(1, 0);
 
+        tenantGroup.MapPost("/logout", TenantLogoutHandlerV1)
+            .WithName("TenantLogout")
+            .WithSummary("Tenant User Logout")
+            .RequireAuthorization()
+            .MapToApiVersion(1, 0);
+
         #endregion
     }
-    #region Admin
-    private static async Task<
-    Results<
-        Ok<ApiResponse<bool>>,
-        UnprocessableEntity<ApiResponse<bool>>
-        >>
-    AdminLogoutHandlerV1(
-    IMediator mediator,
-    ClaimsPrincipal user,
-    CancellationToken cancellationToken)
-    {
-        var adminId = long.Parse(user.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        #region Admin
+        private static async Task<
+        Results<
+            Ok<ApiResponse<bool>>,
+            UnprocessableEntity<ApiResponse<bool>>
+            >>
+        AdminLogoutHandlerV1(
+        IMediator mediator,
+        ClaimsPrincipal user,
+        CancellationToken cancellationToken)
+        {
+            var adminId = long.Parse(user.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
-        var result = await mediator.Send(new AdminLogoutCommand(adminId), cancellationToken);
+            var result = await mediator.Send(new AdminLogoutCommand(adminId), cancellationToken);
 
-        return result.IsSuccess
-            ? TypedResults.Ok(ApiResponse<bool>.Success(result.Data))
-            : TypedResults.UnprocessableEntity(ApiResponse<bool>.Failure(result.Message!));
-    }
+            return result.IsSuccess
+                ? TypedResults.Ok(ApiResponse<bool>.Success(result.Data))
+                : TypedResults.UnprocessableEntity(ApiResponse<bool>.Failure(result.Message!));
+        }
 
-    private static async Task<
-    Results<
-        Ok<ApiResponse<TokenResponseDto>>,
-        UnprocessableEntity<ApiResponse<TokenResponseDto>>
-        >>
-    AdminLoginHandlerV1(
-    AdminLoginDto dto,
-    IMediator mediator,
-    CancellationToken cancellationToken)
-    {
-        var result = await mediator.Send(
-            new AdminLoginCommand(dto), cancellationToken);
+        private static async Task<
+        Results<
+            Ok<ApiResponse<TokenResponseDto>>,
+            UnprocessableEntity<ApiResponse<TokenResponseDto>>
+            >>
+        AdminLoginHandlerV1(
+        AdminLoginDto dto,
+        IMediator mediator,
+        CancellationToken cancellationToken)
+        {
+            var result = await mediator.Send(
+                new AdminLoginCommand(dto), cancellationToken);
 
-        return result.IsSuccess
-            ? TypedResults.Ok(ApiResponse<TokenResponseDto>.Success(result.Data))
-            : TypedResults.UnprocessableEntity(ApiResponse<TokenResponseDto>.Failure(result.Message!));
-    }
+            return result.IsSuccess
+                ? TypedResults.Ok(ApiResponse<TokenResponseDto>.Success(result.Data))
+                : TypedResults.UnprocessableEntity(ApiResponse<TokenResponseDto>.Failure(result.Message!));
+        }
 
-    private static async Task<
-    Results<
-        Ok<ApiResponse<TokenResponseDto>>,
-        UnprocessableEntity<ApiResponse<TokenResponseDto>>
-        >>
-    AdminRefreshTokenHandlerV1(
-    RefreshTokenDto dto,
-    IMediator mediator,
-    CancellationToken cancellationToken)
-    {
-        var result = await mediator.Send(
-            new AdminRefreshTokenCommand(dto), cancellationToken);
+        private static async Task<
+        Results<
+            Ok<ApiResponse<TokenResponseDto>>,
+            UnprocessableEntity<ApiResponse<TokenResponseDto>>
+            >>
+        AdminRefreshTokenHandlerV1(
+        RefreshTokenDto dto,
+        IMediator mediator,
+        CancellationToken cancellationToken)
+        {
+            var result = await mediator.Send(
+                new AdminRefreshTokenCommand(dto), cancellationToken);
 
-        return result.IsSuccess
-            ? TypedResults.Ok(ApiResponse<TokenResponseDto>.Success(result.Data))
-            : TypedResults.UnprocessableEntity(ApiResponse<TokenResponseDto>.Failure(result.Message!));
-    }
-    #endregion
-    private static async Task<
-    Results<
-        Ok<ApiResponse<TokenResponseDto>>,
-        UnprocessableEntity<ApiResponse<TokenResponseDto>>
-        >>
-    TenantLoginHandlerV1(
-    TenantLoginDto dto,
-    IMediator mediator,
-    CancellationToken cancellationToken)
-    {
-        var result = await mediator.Send(
-            new TenantLoginCommand(dto), cancellationToken);
+            return result.IsSuccess
+                ? TypedResults.Ok(ApiResponse<TokenResponseDto>.Success(result.Data))
+                : TypedResults.UnprocessableEntity(ApiResponse<TokenResponseDto>.Failure(result.Message!));
+        }
+        #endregion
 
-        return result.IsSuccess
-            ? TypedResults.Ok(ApiResponse<TokenResponseDto>.Success(result.Data))
-            : TypedResults.UnprocessableEntity(ApiResponse<TokenResponseDto>.Failure(result.Message!));
-    }
+        #region Tenant
+        private static async Task<
+        Results<
+            Ok<ApiResponse<TokenResponseDto>>,
+            UnprocessableEntity<ApiResponse<TokenResponseDto>>
+            >>
+        TenantLoginHandlerV1(
+        TenantLoginDto dto,
+        IMediator mediator,
+        CancellationToken cancellationToken)
+        {
+            var result = await mediator.Send(
+                new TenantLoginCommand(dto), cancellationToken);
 
-    private static async Task<Results<
-        Ok<ApiResponse<TokenResponseDto>>,
-        UnprocessableEntity<ApiResponse<TokenResponseDto>>
-        >>
-    TenantRefreshTokenHandlerV1(
-    RefreshTokenDto dto,
-    IMediator mediator,
-    CancellationToken cancellationToken)
-    {
-        var result = await mediator.Send(new TenantRefreshTokenCommand(dto), cancellationToken);
+            return result.IsSuccess
+                ? TypedResults.Ok(ApiResponse<TokenResponseDto>.Success(result.Data))
+                : TypedResults.UnprocessableEntity(ApiResponse<TokenResponseDto>.Failure(result.Message!));
+        }
 
-        return result.IsSuccess
-            ? TypedResults.Ok(ApiResponse<TokenResponseDto>.Success(result.Data))
-            : TypedResults.UnprocessableEntity(ApiResponse<TokenResponseDto>.Failure(result.Message!));
-    }
+        private static async Task<
+        Results<
+            Ok<ApiResponse<TokenResponseDto>>,
+            UnprocessableEntity<ApiResponse<TokenResponseDto>>
+            >>
+        TenantRefreshTokenHandlerV1(
+        RefreshTokenDto dto,
+        IMediator mediator,
+        CancellationToken cancellationToken)
+        {
+            var result = await mediator.Send(new TenantRefreshTokenCommand(dto), cancellationToken);
+
+            return result.IsSuccess
+                ? TypedResults.Ok(ApiResponse<TokenResponseDto>.Success(result.Data))
+                : TypedResults.UnprocessableEntity(ApiResponse<TokenResponseDto>.Failure(result.Message!));
+        }
+        private static async Task<
+        Results<
+            Ok<ApiResponse<object>>,
+            UnprocessableEntity<ApiResponse<object>>
+            >>
+        TenantLogoutHandlerV1(
+        IMediator mediator,
+        ClaimsPrincipal user,
+        CancellationToken cancellationToken)
+        {
+            var userId = long.Parse(user.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
+            var result = await mediator.Send(
+                new TenantLogoutCommand(userId), cancellationToken);
+
+            return result.IsSuccess
+                ? TypedResults.Ok(ApiResponse<object>.Success(null, result.Message!))
+                : TypedResults.UnprocessableEntity(ApiResponse<object>.Failure(result.Message!));
+        }
+        #endregion
 }
