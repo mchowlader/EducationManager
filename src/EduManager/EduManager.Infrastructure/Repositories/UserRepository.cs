@@ -19,6 +19,7 @@ public class UserRepository(EduDbContext context)
         .Include(u => u.UserRoles)
             .ThenInclude(ur => ur.Role)
                 .ThenInclude(r => r.RolePermissions)
+        .AsSplitQuery()
         .FirstOrDefaultAsync(u =>
             (u.Email == emailOrCode || u.UserCode == emailOrCode)
             && !u.IsDelete, ct);

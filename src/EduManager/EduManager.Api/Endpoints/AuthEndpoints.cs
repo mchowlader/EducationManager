@@ -28,6 +28,7 @@ public class AuthEndpoints : IEndpoints
             .WithTags("Auth")
             .WithMetadata(new TenantRouteAttribute());
 
+        #region Admin
         group.MapPost("/admin/login", AdminLoginHandlerV1)
             .WithName("AdminLogin")
             .WithSummary("Super Admin Login")
@@ -45,14 +46,24 @@ public class AuthEndpoints : IEndpoints
             .WithSummary("Super Admin Logout")
             .RequireAuthorization()
             .MapToApiVersion(1, 0);
+        #endregion
 
+        #region Tenant
         tenantGroup.MapPost("/login", TenantLoginHandlerV1)
             .WithName("TenantLogin")
             .WithSummary("Tenant User Login")
             .AllowAnonymous()
             .MapToApiVersion(1, 0);
-    }
 
+        tenantGroup.MapPost("/refresh", TenantRefreshTokenHandlerV1)
+            .WithName("TenantRefreshToken")
+            .WithSummary("Tenant user refresh token")
+            .AllowAnonymous()
+            .MapToApiVersion(1, 0);
+
+        #endregion
+    }
+    #region Admin
     private static async Task<
     Results<
         Ok<ApiResponse<bool>>,
@@ -107,7 +118,7 @@ public class AuthEndpoints : IEndpoints
             ? TypedResults.Ok(ApiResponse<TokenResponseDto>.Success(result.Data))
             : TypedResults.UnprocessableEntity(ApiResponse<TokenResponseDto>.Failure(result.Message!));
     }
-
+    #endregion
     private static async Task<
     Results<
         Ok<ApiResponse<TokenResponseDto>>,
@@ -120,6 +131,22 @@ public class AuthEndpoints : IEndpoints
     {
         var result = await mediator.Send(
             new TenantLoginCommand(dto), cancellationToken);
+
+        return result.IsSuccess
+            ? TypedResults.Ok(ApiResponse<TokenResponseDto>.Success(result.Data))
+            : TypedResults.UnprocessableEntity(ApiResponse<TokenResponseDto>.Failure(result.Message!));
+    }
+
+    private static async Task<Results<
+        Ok<ApiResponse<TokenResponseDto>>,
+        UnprocessableEntity<ApiResponse<TokenResponseDto>>
+        >>
+    TenantRefreshTokenHandlerV1(
+    RefreshTokenDto dto,
+    IMediator mediator,
+    CancellationToken cancellationToken)
+    {
+        var result = await mediator.Send(new TenantRefreshTokenCommand(dto), cancellationToken);
 
         return result.IsSuccess
             ? TypedResults.Ok(ApiResponse<TokenResponseDto>.Success(result.Data))
