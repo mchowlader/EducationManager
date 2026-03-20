@@ -14,7 +14,7 @@ public class BaseGetAllQueryHandler<TEntity, TResponseDto>(
 {
     public async Task<Result<IEnumerable<TResponseDto>>> Handle(BaseGetAllQuery<TEntity, TResponseDto> request, CancellationToken cancellationToken)
     {
-        var entities = repository.GetAllAsync(request.PageNumber, request.PageSize, cancellationToken);
+        var entities = await repository.GetAllAsync(request.PageNumber, request.PageSize, cancellationToken);
 
         if(entities is null)
             return Result<IEnumerable<TResponseDto>>.Failure($"{typeof(TEntity).Name} not found ");

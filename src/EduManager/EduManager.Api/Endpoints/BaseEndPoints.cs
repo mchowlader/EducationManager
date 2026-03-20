@@ -54,7 +54,6 @@ public abstract class BaseEndPoints<TEntity, TCreateDto, TUpdateDto, TResponseDt
                 .WithSummary($"Get all {EntityName}")
                 .MapToApiVersion(version)
                 .RequireAuthorization(ViewPermission)
-                .WithValidation<TCreateDto>()
                 .Produces<ApiResponse<IEnumerable<TResponseDto>>>(StatusCodes.Status200OK)
                 .Produces(StatusCodes.Status401Unauthorized)
                 .Produces(StatusCodes.Status403Forbidden)

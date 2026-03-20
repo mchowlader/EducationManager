@@ -63,6 +63,7 @@ public static class DependencyInjection
         services.AddScoped<ITenantRepository, TenantRepository>();
         services.AddScoped<IAdminUserRepository, AdminUserRepository>();
         services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped(typeof(IRepository<>), typeof(EduRepository<>));
 
         //Service
         services.AddScoped<ITokenService, TokenService>();
@@ -106,16 +107,21 @@ public static class DependencyInjection
                 policy.RequireRole("Owner", "SuperAdmin", "Support"));
 
             // Tenant Permission Policies — BaseEndpoints er jonno
-            var permissions = typeof(Permissions)
-                .GetFields()
-                .Where(f => f.IsLiteral)
-                .Select(f => f.GetValue(null)?.ToString())
-                .Where(p => p is not null);
+            var entities = typeof(ITenantEntity).Assembly
+                .GetTypes()
+                .Where(f => f.IsClass && !f.IsAbstract && typeof(ITenantEntity).IsAssignableFrom(f))
+                .Select(t => t.Name);
 
-            foreach (var permission in permissions)
+            var actions = new[] {Permissions.View, Permissions.Create, Permissions.Update, Permissions.Delete };
+
+            foreach (var entity in entities)
             {
-                opt.AddPolicy(permission!, policy =>
-                    policy.Requirements.Add(new PermissionRequirement(permission!)));
+                foreach(var action in actions)
+                {
+                    var permission = Permissions.For(entity, action);
+                    opt.AddPolicy(permission, policy =>
+                        policy.Requirements.Add(new PermissionRequirement(permission)));
+                }
             }
         });
 
