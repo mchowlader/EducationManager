@@ -1,6 +1,7 @@
 <Solution>
   <Folder Name="/Solution Items/">
     <File Path="MigrationCmd.txt" />
+    <File Path="Role Permission Flow.txt" />
     <File Path="SqlQuer.sql" />
     <File Path="TextFile1.txt" />
   </Folder>

@@ -1,6 +1,7 @@
 ﻿using EduManager.Application.Interfaces;
 using EduManager.Domain.Common;
 using EduManager.Domain.Constants;
+using EduManager.Domain.Entities;
 using EduManager.Domain.Interfaces;
 using EduManager.Domain.Interfaces.Repositories;
 using EduManager.Infrastructure.Identity;
@@ -64,6 +65,11 @@ public static class DependencyInjection
         services.AddScoped<IAdminUserRepository, AdminUserRepository>();
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped(typeof(IRepository<>), typeof(EduRepository<>));
+
+        services.AddScoped<IRoleRepository, RoleRepository>();
+        services.AddScoped<IUserRoleRepository, UserRoleRepository>();
+        //services.AddScoped<IRepository<RolePermission>, EduRepository<RolePermission>>();
+        //services.AddScoped<IRepository<UserRole>, EduRepository<UserRole>>();
 
         //Service
         services.AddScoped<ITokenService, TokenService>();

@@ -1,0 +1,24 @@
+Purpose — সহজ ভাষায়
+Role Permission Management
+TenantAdmin একটা Role বানালো "Librarian"
+    ↓
+এই Role এ কোন কোন permission থাকবে সেটা add করবে
+    ↓
+POST /roles/4/permissions → "Students.View" add করো
+POST /roles/4/permissions → "Classes.View" add করো
+    ↓
+RolePermissions table এ store হলো
+User Role Assignment
+নতুন একজন Teacher onboard হলো
+    ↓
+TenantAdmin তাকে Teacher Role assign করবে
+    ↓
+POST /users/5/roles → { roleId: 2 }
+    ↓
+UserRoles table এ store হলো
+    ↓
+সে login করলে Teacher এর সব permission পাবে
+
+এক কথায়
+Role Permission → কোন Role এ কি কি করা যাবে
+User Role      → কোন User কোন Role এ আছে
