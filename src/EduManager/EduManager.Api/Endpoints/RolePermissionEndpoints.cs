@@ -61,7 +61,7 @@ public class RolePermissionEndpoints : IEndpoints
 
         return result.IsSuccess
             ? TypedResults.Ok(ApiResponse<object>.Success(result.Data))
-            : TypedResults.UnprocessableEntity(ApiResponse<object>.Failure(result.Message!));
+            : TypedResults.UnprocessableEntity(ApiResponse<object>.Failure(result.Message!, result.ErrorCode));
     }
 
     private static async Task<
@@ -77,7 +77,7 @@ public class RolePermissionEndpoints : IEndpoints
 
         return result.IsSuccess
             ? TypedResults.Ok(ApiResponse<object>.Success(result.Data))
-            : TypedResults.UnprocessableEntity(ApiResponse<object>.Failure(result.Message!));
+            : TypedResults.UnprocessableEntity(ApiResponse<object>.Failure(result.Message!, result.ErrorCode));
     }
 
     private static async Task<
@@ -93,7 +93,7 @@ public class RolePermissionEndpoints : IEndpoints
 
         return result.IsSuccess
             ? TypedResults.Ok(ApiResponse<object>.Success(result.Data))
-            : TypedResults.UnprocessableEntity(ApiResponse<object>.Failure(result.Message!));
+            : TypedResults.UnprocessableEntity(ApiResponse<object>.Failure(result.Message!, result.ErrorCode));
     }
 
     private static async Task<
@@ -110,6 +110,6 @@ public class RolePermissionEndpoints : IEndpoints
 
         return result.IsSuccess
             ? TypedResults.Ok(ApiResponse<object>.Success(result.Data))
-            : TypedResults.UnprocessableEntity(ApiResponse<object>.Failure(result.Message!));
+            : TypedResults.UnprocessableEntity(ApiResponse<object>.Failure(result.Message!, result.ErrorCode));
     }
 }

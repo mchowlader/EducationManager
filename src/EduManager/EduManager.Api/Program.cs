@@ -14,15 +14,15 @@ var builder = WebApplication.CreateBuilder(args);
 
 var pgLogColumnOptions = new Dictionary<string, ColumnWriterBase>
 {
-    { "message",          new RenderedMessageColumnWriter() },
-    { "message_template", new MessageTemplateColumnWriter() },
-    { "level",            new LevelColumnWriter(true, NpgsqlDbType.Varchar) },
-    { "raise_time",       new TimestampColumnWriter() },
-    { "exception",        new ExceptionColumnWriter() },
-    { "properties",       new LogEventSerializedColumnWriter() },
+    { "Message",          new RenderedMessageColumnWriter() },
+    { "MessageTemplate",  new MessageTemplateColumnWriter() },
+    { "Level",            new LevelColumnWriter(true, NpgsqlDbType.Varchar) },
+    { "TimeStamp",        new UtcTimestampColumnWriter() },
+    { "Exception",        new ExceptionColumnWriter() },
+    { "Properties",       new LogEventSerializedColumnWriter() },
     { "ErrorCode",        new SinglePropertyColumnWriter("ErrorCode", PropertyWriteMethod.Raw, NpgsqlDbType.Text) }
 };
-
+Serilog.Debugging.SelfLog.Enable(msg => Console.WriteLine($"SERILOG: {msg}"));
 Log.Logger = new LoggerConfiguration()
     .ReadFrom.Configuration(builder.Configuration)
     .WriteTo.PostgreSQL(
@@ -30,7 +30,8 @@ Log.Logger = new LoggerConfiguration()
         tableName: "Logs",
         columnOptions: pgLogColumnOptions,
         needAutoCreateTable: false,
-        schemaName: "public")
+        schemaName: "public",
+        respectCase: true)
     .CreateLogger();
 
 builder.Host.UseSerilog();
@@ -86,7 +87,7 @@ builder.Services.AddRateLimiter(option =>
         context.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
         context.HttpContext.Response.ContentType = "application/json";
 
-        var response = ApiResponse<object>.Failure("Too many requests. Please try again later.");
+        var response = ApiResponse<object>.Failure("Too many requests. Please try again later.", ErrorCodeGenerator.Generate());
         await context.HttpContext.Response.WriteAsJsonAsync(response);
     };
 });
@@ -120,4 +121,10 @@ catch (Exception ex)
 finally
 {
     Log.CloseAndFlush();
+}
+
+class UtcTimestampColumnWriter() : ColumnWriterBase(NpgsqlDbType.TimestampTz)
+{
+    public override object GetValue(Serilog.Events.LogEvent logEvent, IFormatProvider? formatProvider = null)
+        => logEvent.Timestamp.ToUniversalTime();
 }

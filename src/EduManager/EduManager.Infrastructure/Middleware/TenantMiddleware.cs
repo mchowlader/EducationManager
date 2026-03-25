@@ -57,7 +57,7 @@ public class TenantMiddleware(
         {
             context.Response.StatusCode = StatusCodes.Status400BadRequest;
             await context.Response.WriteAsJsonAsync(
-                ApiResponse<object>.Failure("Invalid Tenant Identifier."));
+                ApiResponse<object>.Failure("Invalid Tenant Identifier.", ErrorCodeGenerator.Generate()));
             return;
         }
 
@@ -68,7 +68,7 @@ public class TenantMiddleware(
         {
             context.Response.StatusCode = StatusCodes.Status404NotFound;
             await context.Response.WriteAsJsonAsync(
-                ApiResponse<object>.Failure("Tenant not found."));
+                ApiResponse<object>.Failure("Tenant not found.", ErrorCodeGenerator.Generate()));
             return;
         }
 
@@ -76,7 +76,7 @@ public class TenantMiddleware(
         {
             context.Response.StatusCode = StatusCodes.Status404NotFound;
             await context.Response.WriteAsJsonAsync(
-                ApiResponse<object>.Failure("Tenant not found."));
+                ApiResponse<object>.Failure("Tenant not found.", ErrorCodeGenerator.Generate()));
             return;
         }
 

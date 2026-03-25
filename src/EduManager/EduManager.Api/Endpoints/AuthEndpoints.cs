@@ -86,7 +86,7 @@ public class AuthEndpoints : IEndpoints
 
             return result.IsSuccess
                 ? TypedResults.Ok(ApiResponse<bool>.Success(result.Data))
-                : TypedResults.UnprocessableEntity(ApiResponse<bool>.Failure(result.Message!));
+                : TypedResults.UnprocessableEntity(ApiResponse<bool>.Failure(result.Message!, result.ErrorCode));
         }
 
         private static async Task<
@@ -104,7 +104,7 @@ public class AuthEndpoints : IEndpoints
 
             return result.IsSuccess
                 ? TypedResults.Ok(ApiResponse<TokenResponseDto>.Success(result.Data))
-                : TypedResults.UnprocessableEntity(ApiResponse<TokenResponseDto>.Failure(result.Message!));
+                : TypedResults.UnprocessableEntity(ApiResponse<TokenResponseDto>.Failure(result.Message!, result.ErrorCode));
         }
 
         private static async Task<
@@ -122,7 +122,7 @@ public class AuthEndpoints : IEndpoints
 
             return result.IsSuccess
                 ? TypedResults.Ok(ApiResponse<TokenResponseDto>.Success(result.Data))
-                : TypedResults.UnprocessableEntity(ApiResponse<TokenResponseDto>.Failure(result.Message!));
+                : TypedResults.UnprocessableEntity(ApiResponse<TokenResponseDto>.Failure(result.Message!, result.ErrorCode));
         }
         #endregion
 
@@ -142,7 +142,7 @@ public class AuthEndpoints : IEndpoints
 
             return result.IsSuccess
                 ? TypedResults.Ok(ApiResponse<TokenResponseDto>.Success(result.Data))
-                : TypedResults.UnprocessableEntity(ApiResponse<TokenResponseDto>.Failure(result.Message!));
+                : TypedResults.UnprocessableEntity(ApiResponse<TokenResponseDto>.Failure(result.Message!, result.ErrorCode));
         }
 
         private static async Task<
@@ -159,7 +159,7 @@ public class AuthEndpoints : IEndpoints
 
             return result.IsSuccess
                 ? TypedResults.Ok(ApiResponse<TokenResponseDto>.Success(result.Data))
-                : TypedResults.UnprocessableEntity(ApiResponse<TokenResponseDto>.Failure(result.Message!));
+                : TypedResults.UnprocessableEntity(ApiResponse<TokenResponseDto>.Failure(result.Message!, result.ErrorCode));
         }
         private static async Task<
         Results<
@@ -178,7 +178,7 @@ public class AuthEndpoints : IEndpoints
 
             return result.IsSuccess
                 ? TypedResults.Ok(ApiResponse<object>.Success(null, result.Message!))
-                : TypedResults.UnprocessableEntity(ApiResponse<object>.Failure(result.Message!));
+                : TypedResults.UnprocessableEntity(ApiResponse<object>.Failure(result.Message!, result.ErrorCode));
         }
         #endregion
 }

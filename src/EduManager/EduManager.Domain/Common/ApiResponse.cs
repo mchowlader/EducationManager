@@ -19,7 +19,7 @@ public class ApiResponse<T>
     public static ApiResponse<T> Success(T? data, string message = "Success") =>
         new() { IsSuccess = true, Data = data, Message = message };
 
-    public static ApiResponse<T> Failure(string message, List<string>? error = null) =>
-        new() { IsSuccess = false, Message = message, Errors = error ?? [], ErrorCode = ErrorCodeGenerator.Generate() };
+    public static ApiResponse<T> Failure(string message, string? errorCode, List<string>? errors = null) =>
+        new() { IsSuccess = false, Message = message, ErrorCode = errorCode, Errors = errors ?? [] };
 
 }

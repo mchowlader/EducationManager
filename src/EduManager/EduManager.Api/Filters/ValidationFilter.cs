@@ -23,7 +23,7 @@ public class ValidationFilter<T>(IValidator<T> validator) : IEndpointFilter
                 .Select(x => x.ErrorMessage)    
                 .ToList();
 
-            return Results.BadRequest(ApiResponse<object>.Failure("Validation failed", errors));
+            return Results.BadRequest(ApiResponse<object>.Failure("Validation failed", ErrorCodeGenerator.Generate(), errors));
         }
 
         return await next(context);

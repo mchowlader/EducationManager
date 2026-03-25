@@ -1,4 +1,5 @@
-﻿using EduManager.Application.Common.Mappings;
+﻿using EduManager.Application.Behaviors;
+using EduManager.Application.Common.Mappings;
 using EduManager.Application.Features.Base.Commands;
 using EduManager.Application.Features.Base.Queries;
 using EduManager.Domain.Common;
@@ -13,7 +14,10 @@ public static class DependencyInjection
     public static IServiceCollection AddApplication(this IServiceCollection services)
     {
         services.AddMediatR(cfg =>
-            cfg.RegisterServicesFromAssembly(typeof(DependencyInjection).Assembly));
+        {
+            cfg.RegisterServicesFromAssembly(typeof(DependencyInjection).Assembly);
+            cfg.AddOpenBehavior(typeof(LoggingBehavior<,>));
+        });
 
         services.AddAutoMapper(cfg =>
         {

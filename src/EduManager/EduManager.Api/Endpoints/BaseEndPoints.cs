@@ -130,7 +130,7 @@ public abstract class BaseEndPoints<TEntity, TCreateDto, TUpdateDto, TResponseDt
 
         return result.IsSuccess
             ? Results.Ok(ApiResponse<IEnumerable<TResponseDto>>.Success(result.Data))
-            : Results.BadRequest(ApiResponse<TResponseDto>.Failure(result.Message!));
+            : Results.BadRequest(ApiResponse<TResponseDto>.Failure(result.Message!, result.ErrorCode));
     }
 
     private static async Task<IResult> GetByIdHandler(long id
@@ -142,7 +142,7 @@ public abstract class BaseEndPoints<TEntity, TCreateDto, TUpdateDto, TResponseDt
 
         return result.IsSuccess
             ? Results.Ok(ApiResponse<TResponseDto>.Success(result.Data))
-            : Results.NotFound(ApiResponse<TResponseDto>.Failure(result.Message!));
+            : Results.NotFound(ApiResponse<TResponseDto>.Failure(result.Message!, result.ErrorCode));
     }
 
     private static async Task<IResult> CreateHandler(TCreateDto dto
@@ -155,7 +155,7 @@ public abstract class BaseEndPoints<TEntity, TCreateDto, TUpdateDto, TResponseDt
         return result.IsSuccess
             ? Results.Created($"/api/{Route}/{result.Data}",
                 ApiResponse<TResponseDto>.Success(result.Data))
-            : Results.BadRequest(ApiResponse<TResponseDto>.Failure(result.Message!));
+            : Results.BadRequest(ApiResponse<TResponseDto>.Failure(result.Message!, result.ErrorCode));
     }
 
     private static async Task<IResult> UpdateHandler(long id
@@ -168,7 +168,7 @@ public abstract class BaseEndPoints<TEntity, TCreateDto, TUpdateDto, TResponseDt
 
         return result.IsSuccess
             ? Results.Ok(ApiResponse<TResponseDto>.Success(result.Data))
-            : Results.BadRequest(ApiResponse<TResponseDto>.Failure(result.Message!));
+            : Results.BadRequest(ApiResponse<TResponseDto>.Failure(result.Message!, result.ErrorCode));
     }
 
     private static async Task<IResult> DeleteHandler(long id
@@ -180,7 +180,7 @@ public abstract class BaseEndPoints<TEntity, TCreateDto, TUpdateDto, TResponseDt
 
         return result.IsSuccess
             ? Results.NoContent()
-            : Results.BadRequest(ApiResponse<object>.Failure(result.Message!));
+            : Results.BadRequest(ApiResponse<object>.Failure(result.Message!, result.ErrorCode));
     }
 
     private static string ToKebabCase(string value) =>

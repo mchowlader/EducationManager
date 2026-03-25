@@ -73,7 +73,7 @@ public class TenantEndpoints : IEndpoints
 
         return result.IsSuccess
             ? TypedResults.Ok(ApiResponse<object>.Success(null, result.Message ?? "Tenant delete successfully"))
-            : TypedResults.BadRequest(ApiResponse<object>.Failure(result.Message!));
+            : TypedResults.BadRequest(ApiResponse<object>.Failure(result.Message!, result.ErrorCode));
     }
 
     private static async Task<
@@ -88,7 +88,7 @@ public class TenantEndpoints : IEndpoints
 
         return result.IsSuccess
             ? TypedResults.Ok(ApiResponse<TenantResponseDto>.Success(result.Data))
-            : TypedResults.BadRequest(ApiResponse<TenantResponseDto>.Failure(result.Message!));
+            : TypedResults.BadRequest(ApiResponse<TenantResponseDto>.Failure(result.Message!, result.ErrorCode));
     }
 
     private static async Task<
@@ -106,7 +106,7 @@ public class TenantEndpoints : IEndpoints
 
         return result.IsSuccess
             ? TypedResults.Ok(ApiResponse<IEnumerable<TenantResponseDto>>.Success(result.Data))
-            : TypedResults.BadRequest(ApiResponse<TenantResponseDto>.Failure(result.Message!));
+            : TypedResults.BadRequest(ApiResponse<TenantResponseDto>.Failure(result.Message!, result.ErrorCode));
     }
 
     private static async Task<
@@ -122,7 +122,7 @@ public class TenantEndpoints : IEndpoints
 
         return result.IsSuccess
             ? TypedResults.Ok(ApiResponse<TenantResponseDto>.Success(result.Data))
-            : TypedResults.BadRequest(ApiResponse<TenantResponseDto>.Failure(result.Message!));
+            : TypedResults.BadRequest(ApiResponse<TenantResponseDto>.Failure(result.Message!, result.ErrorCode));
     }
 
     private static async Task<
@@ -139,6 +139,6 @@ public class TenantEndpoints : IEndpoints
         return result.IsSuccess
             ? TypedResults.Created($"/api/tenants/{result.Data?.Id}",
                 ApiResponse<TenantResponseDto>.Success(result.Data))
-            : TypedResults.BadRequest(ApiResponse<TenantResponseDto>.Failure(result.Message!));
+            : TypedResults.BadRequest(ApiResponse<TenantResponseDto>.Failure(result.Message!, result.ErrorCode));
     }
 }
