@@ -26,6 +26,14 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
+        var jwtKey = configuration["Jwt:Key"]
+            ?? throw new InvalidOperationException(
+           "Missing configuration: Jwt:Key");
+
+        var masterSecret = configuration["Encryption:MasterSecret"]
+            ?? throw new InvalidOperationException(
+                "Missing configuration: Encryption:MasterSecret");
+
         services.AddHangfire(config => config
          .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
          .UseSimpleAssemblyNameTypeSerializer()
@@ -96,7 +104,7 @@ public static class DependencyInjection
                 ValidIssuer = configuration["Jwt:Issuer"],
                 ValidAudience = configuration["Jwt:Audience"],
                 IssuerSigningKey = new SymmetricSecurityKey(
-                    Encoding.UTF8.GetBytes(configuration["Jwt:Key"]!))
+                    Encoding.UTF8.GetBytes(jwtKey))
             };
         });
 
@@ -118,11 +126,11 @@ public static class DependencyInjection
                 .Where(f => f.IsClass && !f.IsAbstract && typeof(ITenantEntity).IsAssignableFrom(f))
                 .Select(t => t.Name);
 
-            var actions = new[] {Permissions.View, Permissions.Create, Permissions.Update, Permissions.Delete };
+            var actions = new[] { Permissions.View, Permissions.Create, Permissions.Update, Permissions.Delete };
 
             foreach (var entity in entities)
             {
-                foreach(var action in actions)
+                foreach (var action in actions)
                 {
                     var permission = Permissions.For(entity, action);
                     opt.AddPolicy(permission, policy =>
