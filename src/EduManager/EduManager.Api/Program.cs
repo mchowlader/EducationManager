@@ -5,13 +5,32 @@ using EduManager.Api.Middleware;
 using EduManager.Application;
 using EduManager.Domain.Common;
 using EduManager.Infrastructure;
+using NpgsqlTypes;
 using Serilog;
+using Serilog.Sinks.PostgreSQL;
 using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
+var pgLogColumnOptions = new Dictionary<string, ColumnWriterBase>
+{
+    { "message",          new RenderedMessageColumnWriter() },
+    { "message_template", new MessageTemplateColumnWriter() },
+    { "level",            new LevelColumnWriter(true, NpgsqlDbType.Varchar) },
+    { "raise_time",       new TimestampColumnWriter() },
+    { "exception",        new ExceptionColumnWriter() },
+    { "properties",       new LogEventSerializedColumnWriter() },
+    { "ErrorCode",        new SinglePropertyColumnWriter("ErrorCode", PropertyWriteMethod.Raw, NpgsqlDbType.Text) }
+};
+
 Log.Logger = new LoggerConfiguration()
     .ReadFrom.Configuration(builder.Configuration)
+    .WriteTo.PostgreSQL(
+        connectionString: builder.Configuration.GetConnectionString("MasterDBConnection"),
+        tableName: "Logs",
+        columnOptions: pgLogColumnOptions,
+        needAutoCreateTable: false,
+        schemaName: "public")
     .CreateLogger();
 
 builder.Host.UseSerilog();
