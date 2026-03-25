@@ -12,16 +12,19 @@ public class TenantRefreshTokenCommandHandler(
     IUserRepository repository,
     IUnitOfWork unitOfWork,
     ITokenService tokenService,
+    IEncryptionService encryption,
     ITenantContext tenantContext)
     : IRequestHandler<TenantRefreshTokenCommand, Result<TokenResponseDto>>
 {
     private readonly IUserRepository _repository = repository;
     private readonly IUnitOfWork _unitOfWork = unitOfWork;
     private readonly ITokenService _tokenService = tokenService;
+    private readonly IEncryptionService _encryption = encryption;
     private readonly ITenantContext _tenantContext = tenantContext;
     public async Task<Result<TokenResponseDto>> Handle(TenantRefreshTokenCommand request, CancellationToken cancellationToken)
     {
-        var user = await _repository.GetByRefreshTokenAsync(request.Dto.RefreshToken, cancellationToken);
+        var user = await _repository.GetByRefreshTokenAsync(
+            _encryption.HashRefreshToken(request.Dto.RefreshToken), cancellationToken);
 
         if (user is null || !user.IsActive)
             return Result<TokenResponseDto>.Failure("Invalid request token.");
@@ -36,7 +39,7 @@ public class TenantRefreshTokenCommandHandler(
             .ToList();
 
         var newRefreshToken = _tokenService.GenerateRefreshToken();
-        user.RefreshToken = newRefreshToken;
+        user.RefreshToken = _encryption.HashRefreshToken(newRefreshToken);
         user.RefreshTokenExpiry = DateTime.UtcNow.AddDays(7);
 
         _repository.UpdateUser(user);

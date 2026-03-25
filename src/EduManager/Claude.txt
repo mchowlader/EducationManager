@@ -1,0 +1,106 @@
+ Explore(Explore full project architecture)
+  ⎿  Done (83 tool uses · 69.0k tokens · 1m 46s)
+  (ctrl+o to expand)
+
+● Based on the full project analysis, here are the architectural weaknesses identified:
+
+  ---
+  Architecture Weaknesses
+
+  1. Generic Base Handlers — Over-Abstraction
+
+  BaseCreateCommandHandler, BaseUpdateCommandHandler, etc. force all entities through a single pattern. Real-world entities often have side effects (sending
+   emails, provisioning databases, emitting events) that don't fit cleanly into a generic CRUD handler. This creates leaky abstractions and workarounds as
+  the codebase grows.
+
+  2. No Domain Events / Event-Driven Design
+
+  Critical business actions (tenant creation, user registration, role assignment) are handled procedurally inside handlers. There are no domain events. This
+   tightly couples workflows — e.g., tenant provisioning (migration + seeding + email) is all done inline, making it fragile, hard to test, and hard to
+  extend.
+
+  3. Hangfire Job Interfaces Without Clear Boundaries
+
+  ITenantCreationJob and ITenantDeletionJob are background jobs, but they appear to directly manipulate DbContexts and infrastructure. Background jobs
+  should only receive IDs and orchestrate via application services — mixing infrastructure concerns into jobs creates hidden coupling and makes testing
+  difficult.
+
+  4. Multi-Tenancy Resolution is Fragile
+
+  Tenant context is extracted from subdomain or X-Tenant-Slug header and stored in HttpContext.Items. If the middleware fails silently or the header is
+  missing, requests may proceed with no tenant context. There's no enforced contract — any service that resolves EduDbContext must trust that middleware ran
+   successfully first.
+
+  5. EduDbContext Instantiated Dynamically Per Request
+
+  The tenant EduDbContext is resolved at runtime based on HTTP context. This makes it invisible to the DI container's lifetime management, can cause issues
+  with EF Core's internal caching, and complicates unit/integration testing. There's no clear safeguard if connection string decryption fails mid-request.
+
+  6. Encrypted Connection Strings Stored in Master DB
+
+  Tenant connection strings are encrypted and stored in the master database. If the master secret is compromised, all tenant databases are exposed. There's
+  no key rotation strategy, no secrets management (e.g., Azure Key Vault, HashiCorp Vault), and the encryption key lives in appsettings.json.
+
+  7. No Outbox / Saga Pattern for Distributed Operations
+
+  Tenant creation involves: creating the DB record → running migrations → seeding default data → (presumably) notifying the tenant. These steps run in
+  sequence without a transaction coordinator. A failure mid-way leaves the system in an inconsistent state with no rollback or retry logic at the saga
+  level.
+
+  8. AutoMapper with Paid License in OSS-Style Project
+
+  AutoMapper 16+ requires a commercial license for business use. Using it in a product without a proper license strategy is a legal and maintenance risk.
+  This is particularly risky if the project grows or becomes commercial.
+
+  9. Serilog MSSqlServer Sink Points to a Different Database
+
+  Logs go to SQL Server while the primary database is PostgreSQL. This introduces a second database dependency purely for logging — increasing
+  infrastructure complexity, cost, and operational overhead. Logs should either go to PostgreSQL (Serilog.Sinks.PostgreSQL exists) or a dedicated logging
+  platform (Seq, Elastic, Loki).
+
+  10. No Domain Validation / Business Rule Enforcement in Entities
+
+  Domain entities are plain data bags — all validation lives in FluentValidation DTOs at the application boundary. There's no enforcement of invariants
+  inside the domain (e.g., a Section can have students beyond its Capacity field — nothing prevents this at the domain level).
+
+  11. No Pagination on All List Endpoints
+
+  pageNumber and pageSize are supported in query parameters, but if the generic BaseGetAllQueryHandler doesn't enforce a maximum page size, a client could
+  request all records (pageSize=999999), causing performance issues at scale.
+
+  12. Role/Permission System Stores Permissions as Strings
+
+  RolePermission stores permission names as plain strings ("Student.Create"). There's no enum or constant registry enforced at the database level. A typo in
+   a permission string silently grants or denies access with no compile-time safety.
+
+  13. Refresh Token Stored as Plain Text in User Table
+
+  The refresh token is stored in the User entity directly. If the database is read (SQL injection, backup leak), all refresh tokens are immediately usable.
+  Refresh tokens should be hashed before storage (similar to passwords).
+
+  14. No Caching Layer
+
+  No caching is implemented for frequently accessed, rarely changing data: role/permission lists, tenant metadata, class/section structures. Every
+  permission check and tenant lookup hits the database, which will become a bottleneck under load.
+
+  15. AppHost / ServiceDefaults Layers Are Thin
+
+  EduManager.AppHost and EduManager.ServiceDefaults exist as separate projects (suggesting .NET Aspire influence) but there's no clear Aspire orchestration
+  present. These layers add structural complexity without delivering the observability/orchestration benefit they imply.
+
+  ---
+  Priority Summary
+
+  ┌──────────┬──────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+  │ Severity │                                                   Weakness                                                   │
+  ├──────────┼──────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+  │ Critical │ Refresh tokens stored as plain text (#13), No saga for tenant provisioning (#7), Secrets in appsettings (#6) │
+  ├──────────┼──────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+  │ High     │ Fragile multi-tenancy resolution (#4), Dynamic DbContext instantiation (#5), No domain invariants (#10)      │
+  ├──────────┼──────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+  │ Medium   │ No domain events (#2), No caching (#14), Permission strings (#12), Logging to SQL Server (#9)                │
+  ├──────────┼──────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+  │ Low      │ Over-abstraction in base handlers (#1), AutoMapper license (#8), Thin Aspire layers (#15)                    │
+  └──────────┴──────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+✻ Crunched for 2m 31s

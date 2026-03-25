@@ -31,7 +31,7 @@ public class AdminLoginCommandHandler(
             return Result<TokenResponseDto>.Failure("Invalid email or password.");
 
         var refreshToken = _tokenService.GenerateRefreshToken();
-        admin.RefreshToken = refreshToken;
+        admin.RefreshToken = _encryption.HashRefreshToken(refreshToken);
         admin.RefreshTokenExpiry = DateTime.UtcNow.AddDays(7);
 
         _repository.Update(admin);

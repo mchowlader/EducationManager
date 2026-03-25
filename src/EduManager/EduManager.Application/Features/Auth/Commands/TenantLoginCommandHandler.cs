@@ -43,7 +43,7 @@ public class TenantLoginCommandHandler(
             return Result<TokenResponseDto>.Failure("User has no permissions assigned.");
 
         var refreshToken = _tokenService.GenerateRefreshToken();
-        user.RefreshToken = refreshToken;
+        user.RefreshToken = _encryption.HashRefreshToken(refreshToken);
         user.RefreshTokenExpiry = DateTime.UtcNow.AddDays(7);
 
         _repository.UpdateUser(user);

@@ -6,4 +6,5 @@ public interface IEncryptionService
     string Decrypt(string cipherText, string slug, string salt);
     string HashPassword(string password);
     bool VerifyPassword(string password, string hash);
+    string HashRefreshToken(string token);
 }

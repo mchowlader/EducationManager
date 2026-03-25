@@ -62,6 +62,12 @@ public class EncryptionService(IConfiguration configuration) : IEncryptionServic
     public bool VerifyPassword(string password, string hash) =>
         BCrypt.Net.BCrypt.Verify(password, hash);
 
+    public string HashRefreshToken(string token)
+    {
+        var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(token));
+        return Convert.ToHexString(bytes).ToLowerInvariant();
+    }
+
     private byte[] DriveKey(string slug, string salt)
     {
         var input = Encoding.UTF8.GetBytes($"{slug}-{salt}");
