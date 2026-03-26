@@ -9,10 +9,10 @@ Add-Migration InitalMigration -Context EduDbContext -OutputDir Persistence/Migra
 Update-Database -Context MasterDbContext
 
 {
-  "name": "Hatempur High School",
-  "slug": "Hatempur",
-  "email": "hatempur@gmail.com",
-  "mobile": "01710025020",
+  "name": "Kalmegha High School",
+  "slug": "Kalmegha",
+  "email": "Kalmegha@gmail.com",
+  "mobile": "01710025096",
   "password": "Admin@123"
 }
 
