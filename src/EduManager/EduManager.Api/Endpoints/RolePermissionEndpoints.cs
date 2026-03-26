@@ -34,7 +34,7 @@ public class RolePermissionEndpoints : IEndpoints
             .RequireAuthorization("Permission.Delete")
             .HasApiVersion(1, 0);
 
-        group.MapPost("/api/{userId:long}/roles", AssignUserRoleHandlerV1)
+        group.MapPost("/{userId:long}/roles", AssignUserRoleHandlerV1)
             .WithName("AssignUserRole")
             .WithSummary("Assign role to user")
             .RequireAuthorization("UserRole.Create")
@@ -49,8 +49,8 @@ public class RolePermissionEndpoints : IEndpoints
 
     private static async Task<
     Results
-        <Ok<ApiResponse<object>>,
-        UnprocessableEntity<ApiResponse<object>>>>
+        <Ok<ApiResponse<UserRoleDto>>,
+        UnprocessableEntity<ApiResponse<UserRoleDto>>>>
     AssignUserRoleHandlerV1(long userId
     , AssignUserRoleDto dto
     , IMediator mediator
@@ -60,8 +60,8 @@ public class RolePermissionEndpoints : IEndpoints
             new AssignUserRoleCommand(userId, dto), cancellationToken);
 
         return result.IsSuccess
-            ? TypedResults.Ok(ApiResponse<object>.Success(result.Data))
-            : TypedResults.UnprocessableEntity(ApiResponse<object>.Failure(result.Message!, result.ErrorCode));
+            ? TypedResults.Ok(ApiResponse<UserRoleDto>.Success(result.Data, result.Message!))
+            : TypedResults.UnprocessableEntity(ApiResponse<UserRoleDto>.Failure(result.Message!, result.ErrorCode));
     }
 
     private static async Task<
@@ -109,7 +109,7 @@ public class RolePermissionEndpoints : IEndpoints
             new RemoveUserRoleCommand(userId, roleId), cancellationToken);
 
         return result.IsSuccess
-            ? TypedResults.Ok(ApiResponse<object>.Success(result.Data))
+            ? TypedResults.Ok(ApiResponse<object>.Success(result.Message!))
             : TypedResults.UnprocessableEntity(ApiResponse<object>.Failure(result.Message!, result.ErrorCode));
     }
 }

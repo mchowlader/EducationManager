@@ -31,6 +31,8 @@ public class UserRepository(EduDbContext context)
                 .ThenInclude(r => r.RolePermissions)
         .FirstOrDefaultAsync(u => u.RefreshToken == refreshToken && !u.IsDelete, ct);
 
+
+
     public void UpdateUser(User user)
         => DbSet.Update(user);
 }

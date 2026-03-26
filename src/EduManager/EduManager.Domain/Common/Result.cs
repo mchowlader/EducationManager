@@ -7,6 +7,30 @@ public interface IOperationResult
     string? ErrorCode { get; }
 }
 
+public abstract class ResultBase : IOperationResult
+{
+    public bool IsSuccess { get; protected init; }
+    public string? Message { get; protected init; }
+    public string? ErrorCode { get; protected init; }
+    public List<string> Errors { get; protected init; } = [];
+}
+public class Result : ResultBase
+{
+    private Result() { }
+
+    public static Result Success(string message) =>
+        new() { IsSuccess = true, Message = message };
+
+    public static Result Failure(string message, List<string>? errors = null) =>
+        new()
+        {
+            IsSuccess = false,
+            Message = message,
+            Errors = errors ?? [],
+            ErrorCode = ErrorCodeGenerator.Generate()
+        };
+}
+
 public class Result<T> : IOperationResult
 {
     public bool IsSuccess { get; set; }

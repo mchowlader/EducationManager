@@ -28,6 +28,7 @@ public class UserRoleConfiguration : EduEntityConfiguration, IEntityTypeConfigur
         // Indexes
         builder.HasIndex(x => new { x.UserId, x.RoleId })
             .IsUnique()
+            .HasFilter("\"IsDelete\" = false")
             .HasDatabaseName("IX_UserRoles_UserId_RoleId");
     }
 }

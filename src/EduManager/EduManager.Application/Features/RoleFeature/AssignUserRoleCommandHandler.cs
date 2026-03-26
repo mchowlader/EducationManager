@@ -1,4 +1,5 @@
-﻿using EduManager.Domain.Common;
+﻿using EduManager.Application.DTOs.Feature.RoleFeature;
+using EduManager.Domain.Common;
 using EduManager.Domain.Entities;
 using EduManager.Domain.Interfaces;
 using EduManager.Domain.Interfaces.Repositories;
@@ -7,27 +8,28 @@ using MediatR;
 namespace EduManager.Application.Features.RoleFeature;
 
 public class AssignUserRoleCommandHandler(
+    IUserRoleRepository userRoleRepository,
     IUserRepository userRepository,
     IRepository<Role> roleRepository,
-    IRepository<UserRole> userRoleRepository,
     IUnitOfWork unitOfWork)
-    : IRequestHandler<AssignUserRoleCommand, Result<Object>>
+    : IRequestHandler<AssignUserRoleCommand, Result<UserRoleDto>>
 {
-    private readonly IUserRepository _userRepository = userRepository;
-    private readonly IRepository<Role> _roleRepository = roleRepository;
-    private IRepository<UserRole> _userRoleRepository = userRoleRepository;
-    private readonly IUnitOfWork _unitOfWork = unitOfWork;
-    public async Task<Result<object>> Handle(AssignUserRoleCommand request, CancellationToken cancellationToken)
+    public async Task<Result<UserRoleDto>> Handle(AssignUserRoleCommand request, CancellationToken cancellationToken)
     {
-        var user = await _userRepository.GetByIdAsync(request.UserId, cancellationToken);
+        var user = await userRepository.GetByIdAsync(request.UserId, cancellationToken);
 
         if(user is null)
-            return Result<object>.Failure("User not found.");
+            return Result<UserRoleDto>.Failure("User not found.");
 
-        var role = await _roleRepository.GetByIdAsync(request.Dto.RoleId, cancellationToken);
+        var role = await roleRepository.GetByIdAsync(request.Dto.RoleId, cancellationToken);
 
         if (role is null)
-            return Result<object>.Failure("Role not found.");
+            return Result<UserRoleDto>.Failure("Role not found.");
+
+        var exitingUserRole = await userRoleRepository.GetByUserIdAndRoleIdAsync(request.UserId, request.Dto.RoleId, cancellationToken);
+
+        if (exitingUserRole is not null)
+            return Result<UserRoleDto>.Failure("User already has this role.");
 
         var userRole = new UserRole
         {
@@ -35,9 +37,16 @@ public class AssignUserRoleCommandHandler(
             RoleId = request.Dto.RoleId,
         };
 
-        await _userRoleRepository.AddAsync(userRole, cancellationToken);
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
+        await userRoleRepository.AddAsync(userRole, cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
 
-        return Result<object>.Success(true, "Role assigned successfully.");
+        return Result<UserRoleDto>.Success(
+        new UserRoleDto(
+            userRole.UserId,
+            userRole.RoleId,
+            role.Name,         
+            userRole.CreatedAt
+        ),
+        "Role assigned successfully.");
     }
 }

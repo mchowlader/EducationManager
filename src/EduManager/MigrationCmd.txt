@@ -3,7 +3,7 @@ dotnet run --project src/EduManager/EduManager.Migrator
 # Migration
 Add-Migration AddLogsTable -Context MasterDbContext -OutputDir Persistence/Migrations/Master
 
-Add-Migration InitalMigration -Context EduDbContext -OutputDir Persistence/Migrations/EduTenants
+Add-Migration UpdateUserRoleIndex -Context EduDbContext -OutputDir Persistence/Migrations/EduTenants
 
 # Update
 Update-Database -Context MasterDbContext

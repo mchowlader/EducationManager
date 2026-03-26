@@ -129,7 +129,7 @@ public abstract class BaseEndPoints<TEntity, TCreateDto, TUpdateDto, TResponseDt
             new BaseGetAllQuery<TEntity, TResponseDto>(pageNumber, pageSize), cancellationToken);
 
         return result.IsSuccess
-            ? Results.Ok(ApiResponse<IEnumerable<TResponseDto>>.Success(result.Data))
+            ? Results.Ok(ApiResponse<IEnumerable<TResponseDto>>.Success(result.Data, result.Message!))
             : Results.BadRequest(ApiResponse<TResponseDto>.Failure(result.Message!, result.ErrorCode));
     }
 
@@ -141,7 +141,7 @@ public abstract class BaseEndPoints<TEntity, TCreateDto, TUpdateDto, TResponseDt
             new BaseGetByIdQuery<TEntity, TResponseDto>(id), cancellationToken);
 
         return result.IsSuccess
-            ? Results.Ok(ApiResponse<TResponseDto>.Success(result.Data))
+            ? Results.Ok(ApiResponse<TResponseDto>.Success(result.Data, result.Message!))
             : Results.NotFound(ApiResponse<TResponseDto>.Failure(result.Message!, result.ErrorCode));
     }
 
@@ -154,7 +154,7 @@ public abstract class BaseEndPoints<TEntity, TCreateDto, TUpdateDto, TResponseDt
 
         return result.IsSuccess
             ? Results.Created($"/api/{Route}/{result.Data}",
-                ApiResponse<TResponseDto>.Success(result.Data))
+                ApiResponse<TResponseDto>.Success(result.Data, result.Message!))
             : Results.BadRequest(ApiResponse<TResponseDto>.Failure(result.Message!, result.ErrorCode));
     }
 
@@ -167,7 +167,7 @@ public abstract class BaseEndPoints<TEntity, TCreateDto, TUpdateDto, TResponseDt
             new BaseUpdateCommand<TEntity, TUpdateDto, TResponseDto>(id, dto), cancellationToken);
 
         return result.IsSuccess
-            ? Results.Ok(ApiResponse<TResponseDto>.Success(result.Data))
+            ? Results.Ok(ApiResponse<TResponseDto>.Success(result.Data, result.Message!))
             : Results.BadRequest(ApiResponse<TResponseDto>.Failure(result.Message!, result.ErrorCode));
     }
 
