@@ -1,4 +1,5 @@
 ﻿using EduManager.Domain.Common;
+using EduManager.Domain.Exceptions;
 
 namespace EduManager.Api.Middleware;
 
@@ -12,6 +13,19 @@ public class GlobalExceptionMiddleware(RequestDelegate next, ILogger<GlobalExcep
         try
         {
             await _next(context);
+        }
+        catch (TenantContextNotFoundException)
+        {
+            context.Response.StatusCode = 404;
+            context.Response.ContentType = "application/json";
+
+            var response = new ApiResponse<Object>()
+            {
+                IsSuccess = false,
+                Message = "Tenant not found."
+            };
+
+            await context.Response.WriteAsJsonAsync(response);
         }
         catch (Exception ex)
         {

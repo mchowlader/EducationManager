@@ -1,5 +1,6 @@
 ﻿using EduManager.Application.Interfaces;
 using EduManager.Domain.Common;
+using EduManager.Domain.Exceptions;
 using EduManager.Domain.Constants;
 using EduManager.Domain.Entities;
 using EduManager.Domain.Interfaces;
@@ -59,7 +60,7 @@ public static class DependencyInjection
             if (tenantContext?.ConnectionString != null)
                 optionsBuilder.UseNpgsql(tenantContext.ConnectionString);
             else
-                optionsBuilder.UseNpgsql("Host=localhost;Database=placeholder;");
+                throw new TenantContextNotFoundException();
 
             return new EduDbContext(optionsBuilder.Options);
         });
