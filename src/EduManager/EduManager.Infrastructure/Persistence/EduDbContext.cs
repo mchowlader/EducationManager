@@ -1,4 +1,5 @@
-﻿using EduManager.Domain.Common;
+﻿using EduManager.Application.Interfaces;
+using EduManager.Domain.Common;
 using EduManager.Domain.Entities;
 using EduManager.Infrastructure.Persistence.Configurations.EduTenants;
 using Microsoft.EntityFrameworkCore;
@@ -9,9 +10,17 @@ namespace EduManager.Infrastructure.Persistence;
 
 public class EduDbContext : DbContext
 {
+    private readonly ICurrentUserService? _currentUserService;
     // ✅ Primary constructor - Runtime use
     public EduDbContext(DbContextOptions<EduDbContext> options) : base(options)
     {
+    }
+
+    public EduDbContext(DbContextOptions<EduDbContext> options,
+        ICurrentUserService? currentUserService = null) 
+    : base(options)
+    {
+        _currentUserService = currentUserService;
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -34,6 +43,8 @@ public class EduDbContext : DbContext
 
     public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
+        var userId = _currentUserService?.UserId ?? 0;
+
         foreach (var entity in ChangeTracker.Entries<BaseEntity>())
         {
             switch (entity.State)
@@ -41,10 +52,12 @@ public class EduDbContext : DbContext
                 case EntityState.Added:
                     entity.Entity.CreatedAt = DateTime.UtcNow;
                     entity.Entity.IsDelete = false;
+                    entity.Entity.CreateBy = userId;  
                     break;
 
                 case EntityState.Modified:
                     entity.Entity.UpdatedAt = DateTime.UtcNow;
+                    entity.Entity.UpdateBy = userId;  
                     break;
             }
         }

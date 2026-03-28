@@ -3,7 +3,7 @@ using EduManager.Domain.Entities;
 
 namespace EduManager.Api.Endpoints;
 
-public class ClassesEndPoints : BaseEndPoints<Classes, ClassesCreateDto, ClassesUpdateDto, ClassesResponseDto>, IEndpoints
+public class ClassesEndPoints : BaseEndPoints<Classes, CreateClassesDTO, UpdateClassesDto, ClassesResponseDto>, IEndpoints
 {
     public static void MapEndpoints(WebApplication app)
     {

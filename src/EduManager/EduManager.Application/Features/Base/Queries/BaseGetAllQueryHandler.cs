@@ -16,11 +16,11 @@ public class BaseGetAllQueryHandler<TEntity, TResponseDto>(
     {
         var entities = await repository.GetAllAsync(request.PageNumber, request.PageSize, cancellationToken);
 
-        if(entities is null)
-            return Result<IEnumerable<TResponseDto>>.Failure($"{typeof(TEntity).Name} not found ");
+        if(!entities.Any())
+            return Result<IEnumerable<TResponseDto>>.Success(null, $"No {typeof(TEntity).Name} records found");
 
         var data = mapper.Map<IEnumerable<TResponseDto>>(entities);
 
-        return Result<IEnumerable<TResponseDto>>.Success(data);
+        return Result<IEnumerable<TResponseDto>>.Success(data, $"{typeof(TEntity).Name} retrive successfully. ");
     }
 }

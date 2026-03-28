@@ -1,6 +1,6 @@
 ﻿namespace EduManager.Application.DTOs.Feature.ClassesFeature;
 
-public record ClassesUpdateDto(
+public record UpdateClassesDto(
     string Name,
     string Description
 );

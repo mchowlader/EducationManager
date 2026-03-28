@@ -1,5 +1,7 @@
 ﻿namespace EduManager.Application.Interfaces;
 
-internal interface ICurrentUserService
+public interface ICurrentUserService
 {
+    long UserId { get; }
+    bool IsAuthenticated { get; }
 }

@@ -53,6 +53,7 @@ public static class DependencyInjection
         services.AddScoped<EduDbContext>(sp =>
         {
             var httpContextAccessor = sp.GetRequiredService<IHttpContextAccessor>();
+            var currentUserService = sp.GetRequiredService<ICurrentUserService>();
             var tenantContext = httpContextAccessor.HttpContext?.Items["TenantContext"] as TenantContext;
 
             var optionsBuilder = new DbContextOptionsBuilder<EduDbContext>();
@@ -62,7 +63,7 @@ public static class DependencyInjection
             else
                 throw new TenantContextNotFoundException();
 
-            return new EduDbContext(optionsBuilder.Options);
+            return new EduDbContext(optionsBuilder.Options, currentUserService);
         });
 
         //UnitOfWork
@@ -86,6 +87,7 @@ public static class DependencyInjection
         services.AddScoped<ITokenService, TokenService>();
         services.AddScoped<ITenantService, TenantService>();
         services.AddScoped<ITeacherService, TeacherService>();
+        services.AddScoped<ICurrentUserService, CurrentUserService>();
 
         //Jobs
         services.AddScoped<ITenantCreationJob, TenantCreationJob>();

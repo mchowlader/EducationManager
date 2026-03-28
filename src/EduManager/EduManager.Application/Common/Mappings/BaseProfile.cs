@@ -12,9 +12,10 @@ public class BaseProfile<TEntity, TCreateDto, TUpdateDto, TResponseDto> : Profil
     public BaseProfile()
     {
         CreateMap<TCreateDto, TEntity>();
+
         CreateMap<TUpdateDto, TEntity>()
             .ForAllMembers(opt => opt
-            .Condition((src, dst, srcMember) => srcMember is null));
+            .Condition((src, dst, srcMember) => srcMember is not null));
 
         CreateMap<TEntity, TResponseDto>();
     }

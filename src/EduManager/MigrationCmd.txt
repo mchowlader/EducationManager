@@ -9,10 +9,10 @@ Add-Migration UpdateUserRoleIndex -Context EduDbContext -OutputDir Persistence/M
 Update-Database -Context MasterDbContext
 
 {
-  "name": "Hatempur High School",
-  "slug": "Hatempur",
-  "email": "hatempur@gmail.com",
-  "mobile": "01710025000",
+  "name": "Kalmegha High School",
+  "slug": "Kalmegha",
+  "email": "kalmegha@gmail.com",
+  "mobile": "01710025001",
   "password": "Admin@123"
 }
 
