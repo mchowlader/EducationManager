@@ -15,6 +15,7 @@ public class UserConfiguration : EduEntityConfiguration, IEntityTypeConfiguratio
             .UseIdentityByDefaultColumn();
 
         builder.Property(x => x.UserCode)
+            .HasDefaultValueSql("''")
             .HasMaxLength(20)
             .IsRequired();
 

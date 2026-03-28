@@ -31,7 +31,7 @@ public class TenantLoginCommandHandler(
             _encryption.VerifyPassword(request.dto.Password, user.PasswordHash);
 
         if (user is null || !passwordValid || user.IsDelete || !user.IsActive)
-            return Result<TokenResponseDto>.Failure("Invalid email or password.");
+            return Result<TokenResponseDto>.Failure("Invalid user credential");
 
         var permissions = user.UserRoles
             .SelectMany(ur => ur.Role.RolePermissions)

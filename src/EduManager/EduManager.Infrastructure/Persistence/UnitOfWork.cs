@@ -1,13 +1,16 @@
-﻿using EduManager.Domain.Interfaces;
+﻿using EduManager.Application.Interfaces;
+using EduManager.Domain.Interfaces;
 
 namespace EduManager.Infrastructure.Persistence;
 
 public class UnitOfWork(EduDbContext eduDbContext) : IUnitOfWork
 {
-    private readonly EduDbContext _eduDbContext = eduDbContext;
 
-    public Task<int> SaveChangesAsync(CancellationToken cancellationToken = default) 
-        =>  _eduDbContext.SaveChangesAsync(cancellationToken);
+    public Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+        => eduDbContext.SaveChangesAsync(cancellationToken);
 
-    public void Dispose() => _eduDbContext.Dispose();
+    public void Dispose() => eduDbContext.Dispose();
+
+    public async Task<ITransaction> BeginTransactionAsync(CancellationToken ct = default)
+        => new EfTransaction(await eduDbContext.Database.BeginTransactionAsync(ct));
 }

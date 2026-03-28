@@ -9,10 +9,10 @@ Add-Migration UpdateUserRoleIndex -Context EduDbContext -OutputDir Persistence/M
 Update-Database -Context MasterDbContext
 
 {
-  "name": "Kalmegha High School",
-  "slug": "Kalmegha",
-  "email": "Kalmegha@gmail.com",
-  "mobile": "01710025096",
+  "name": "Hatempur High School",
+  "slug": "Hatempur",
+  "email": "hatempur@gmail.com",
+  "mobile": "01710025000",
   "password": "Admin@123"
 }
 
@@ -24,4 +24,20 @@ Update-Database -Context MasterDbContext
 {
   "emailOrCode": "HATU00001",
   "password": "Admin@123"
+}
+
+{
+  "email": "ranjitsikder@gmail.com",
+  "password": "Admin@123",
+  "fullName": "Ranjit Shikder",
+  "mobile": "01729873815",
+  "dateOfBirth": "1975-03-28T08:52:41.193Z",
+  "designation": "Social Science",
+  "address": {
+    "division": "Barisal",
+    "district": "Bargula",
+    "thana": "Pathorghata",
+    "city": "Pathorghata",
+    "postalCode": "8720"
+  }
 }

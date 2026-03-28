@@ -66,7 +66,7 @@ public class RolePermissionEndpoints : IEndpoints
 
     private static async Task<
     Results
-        <Ok<ApiResponse<object>>,
+        <Created<ApiResponse<object>>,
         UnprocessableEntity<ApiResponse<object>>>> 
     AddPermissionHandlerV1(long roleId
     , AddRolePermissionDto dto
@@ -76,8 +76,10 @@ public class RolePermissionEndpoints : IEndpoints
         var result = await mediator.Send(new AddRolePermissionCommand(roleId, dto), cancellationToken);
 
         return result.IsSuccess
-            ? TypedResults.Ok(ApiResponse<object>.Success(result.Data))
-            : TypedResults.UnprocessableEntity(ApiResponse<object>.Failure(result.Message!, result.ErrorCode));
+            ? TypedResults.Created( string.Empty,
+                ApiResponse<object>.Success(null, result.Message!))
+            : TypedResults.UnprocessableEntity(
+                ApiResponse<object>.Failure(result.Message!, result.ErrorCode));
     }
 
     private static async Task<

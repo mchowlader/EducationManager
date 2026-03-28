@@ -14,6 +14,8 @@ public class RoleRepository(EduDbContext context) :
             .Include(r => r.RolePermissions)
             .FirstOrDefaultAsync(r => r.Id == id && !r.IsDelete, ct);
 
+    public async Task<Role?> GetByNameAsync(string name, CancellationToken ct)
+        => await DbSet.FirstOrDefaultAsync(r => r.Name == name, ct);
 
     public async Task<RolePermission?> GetRolePermissionAsync(long roleId, string permission, CancellationToken ct = default)
         => await context.RolePermissions

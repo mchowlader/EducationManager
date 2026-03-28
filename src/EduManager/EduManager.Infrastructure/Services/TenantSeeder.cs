@@ -79,12 +79,15 @@ namespace EduManager.Infrastructure.Services
                 new() { RoleId = teacherRole.Id, Permission = Permissions.For("Students", Permissions.Update) },
                 new() { RoleId = teacherRole.Id, Permission = Permissions.For("Classes", Permissions.View) },
                 new() { RoleId = teacherRole.Id, Permission = Permissions.For("Sections", Permissions.View) },
+                new() { RoleId = teacherRole.Id, Permission = Permissions.For("Teacher", Permissions.View) },   
+                new() { RoleId = teacherRole.Id, Permission = Permissions.For("Teacher", Permissions.Update) },
             };
 
             // Student — minimum permission
             var studentPermissions = new List<RolePermission>
             {
                 new() { RoleId = studentRole.Id, Permission = Permissions.For("Students", Permissions.View) },
+                new() { RoleId = studentRole.Id, Permission = Permissions.For("Students", Permissions.Update) },
             };
 
             await context.RolePermissions.AddRangeAsync(tenantAdminPermissions);

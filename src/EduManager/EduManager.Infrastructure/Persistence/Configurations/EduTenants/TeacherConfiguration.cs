@@ -15,6 +15,7 @@ public class TeacherConfiguration : EduEntityConfiguration, IEntityTypeConfigura
             .UseIdentityByDefaultColumn();
 
         builder.Property(x => x.TeacherCode)
+            .HasDefaultValueSql("''")
             .HasMaxLength(20)
             .ValueGeneratedOnAdd();
 

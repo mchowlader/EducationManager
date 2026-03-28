@@ -28,7 +28,7 @@ public class AdminLoginCommandHandler(
             _encryption.VerifyPassword(request.Dto.Password, admin.PasswordHash);
 
         if (admin is null || !passwordValid || !admin.IsActive)
-            return Result<TokenResponseDto>.Failure("Invalid email or password.");
+            return Result<TokenResponseDto>.Failure("Invalid user credential.");
 
         var refreshToken = _tokenService.GenerateRefreshToken();
         admin.RefreshToken = _encryption.HashRefreshToken(refreshToken);

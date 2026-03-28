@@ -1,8 +1,8 @@
 ﻿using EduManager.Application.Interfaces;
 using EduManager.Domain.Common;
-using EduManager.Domain.Exceptions;
 using EduManager.Domain.Constants;
 using EduManager.Domain.Entities;
+using EduManager.Domain.Exceptions;
 using EduManager.Domain.Interfaces;
 using EduManager.Domain.Interfaces.Repositories;
 using EduManager.Infrastructure.Identity;
@@ -73,7 +73,9 @@ public static class DependencyInjection
         services.AddScoped<ITenantRepository, TenantRepository>();
         services.AddScoped<IAdminUserRepository, AdminUserRepository>();
         services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<ITeacherRepository, TeacherRepository>();
         services.AddScoped(typeof(IRepository<>), typeof(EduRepository<>));
+        //services.AddScoped<IRepository<UserProfile>, EduRepository<UserProfile>>();
 
         services.AddScoped<IRoleRepository, RoleRepository>();
         services.AddScoped<IUserRoleRepository, UserRoleRepository>();
@@ -83,6 +85,7 @@ public static class DependencyInjection
         //Service
         services.AddScoped<ITokenService, TokenService>();
         services.AddScoped<ITenantService, TenantService>();
+        services.AddScoped<ITeacherService, TeacherService>();
 
         //Jobs
         services.AddScoped<ITenantCreationJob, TenantCreationJob>();

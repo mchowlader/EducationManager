@@ -11,7 +11,7 @@ namespace EduManager.Infrastructure.Persistence.Migrations.EduTenants
         {
             // 1. tenant_config table
             migrationBuilder.Sql("""
-                CREATE TABLE tenant_config (
+                CREATE TABLE TENANT_CONFIG (
                     key VARCHAR(50) PRIMARY KEY,
                     value VARCHAR(200) NOT NULL
                 );

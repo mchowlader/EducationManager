@@ -181,6 +181,11 @@ public class TenantCreationJob(
             GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO "{userName}";
             ALTER DEFAULT PRIVILEGES IN SCHEMA public
                 GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO "{userName}";
+            
+                GRANT USAGE, SELECT ON SEQUENCE user_code_seq TO "{userName}";
+                GRANT USAGE, SELECT ON SEQUENCE student_code_seq TO "{userName}";
+                GRANT USAGE, SELECT ON SEQUENCE teacher_code_seq TO "{userName}";
+
             """, conn);
 
         await cmd.ExecuteNonQueryAsync();

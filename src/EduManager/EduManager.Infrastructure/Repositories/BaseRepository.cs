@@ -23,8 +23,8 @@ public class BaseRepository<T, TContext>(TContext context)
             .Take(pageSize)
             .ToListAsync(cancellationToken);
 
-    public Task<T?> GetByIdAsync(long id, CancellationToken cancellationToken = default) =>
-        DbSet.FirstOrDefaultAsync(e => e.Id == id, cancellationToken);
+    public async Task<T?> GetByIdAsync(long id, CancellationToken cancellationToken = default) =>
+        await DbSet.FirstOrDefaultAsync(e => e.Id == id, cancellationToken);
 
     public void Update(T entity) =>
         DbSet.Update(entity);

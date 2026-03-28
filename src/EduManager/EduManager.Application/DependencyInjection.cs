@@ -3,6 +3,7 @@ using EduManager.Application.Common.Mappings;
 using EduManager.Application.Features.Base.Commands;
 using EduManager.Application.Features.Base.Queries;
 using EduManager.Domain.Common;
+using EduManager.Domain.Interfaces;
 using FluentValidation;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
@@ -81,6 +82,11 @@ public static class DependencyInjection
                     typeof(BaseDeleteCommand<>).MakeGenericType(entity),
                     typeof(Result<bool>)),
                 typeof(BaseDeleteCommandHandler<>).MakeGenericType(entity));
+
+            var deleteHandlerType = typeof(IRequestHandler<,>).MakeGenericType(
+            typeof(BaseDeleteCommand<>).MakeGenericType(entity),
+            typeof(Result<bool>));
+                    Console.WriteLine($"  Delete handler registered for {entity.Name}: {services.Any(s => s.ServiceType == deleteHandlerType)}");
         }
     }
 }

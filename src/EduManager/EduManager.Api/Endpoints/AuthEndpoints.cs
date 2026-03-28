@@ -92,7 +92,7 @@ public class AuthEndpoints : IEndpoints
         private static async Task<
         Results<
             Ok<ApiResponse<TokenResponseDto>>,
-            UnprocessableEntity<ApiResponse<TokenResponseDto>>
+            JsonHttpResult<ApiResponse<TokenResponseDto>>
             >>
         AdminLoginHandlerV1(
         AdminLoginDto dto,
@@ -104,8 +104,9 @@ public class AuthEndpoints : IEndpoints
 
             return result.IsSuccess
                 ? TypedResults.Ok(ApiResponse<TokenResponseDto>.Success(result.Data))
-                : TypedResults.UnprocessableEntity(ApiResponse<TokenResponseDto>.Failure(result.Message!, result.ErrorCode));
-        }
+                : TypedResults.Json(ApiResponse<TokenResponseDto>
+                    .Failure(result.Message!, null), statusCode: StatusCodes.Status401Unauthorized);
+    }
 
         private static async Task<
         Results<
@@ -130,7 +131,7 @@ public class AuthEndpoints : IEndpoints
         private static async Task<
         Results<
             Ok<ApiResponse<TokenResponseDto>>,
-            UnprocessableEntity<ApiResponse<TokenResponseDto>>
+            JsonHttpResult<ApiResponse<TokenResponseDto>>
             >>
         TenantLoginHandlerV1(
         TenantLoginDto dto,
@@ -140,9 +141,10 @@ public class AuthEndpoints : IEndpoints
             var result = await mediator.Send(
                 new TenantLoginCommand(dto), cancellationToken);
 
-            return result.IsSuccess
-                ? TypedResults.Ok(ApiResponse<TokenResponseDto>.Success(result.Data))
-                : TypedResults.UnprocessableEntity(ApiResponse<TokenResponseDto>.Failure(result.Message!, result.ErrorCode));
+        return result.IsSuccess
+            ? TypedResults.Ok(ApiResponse<TokenResponseDto>.Success(result.Data))
+            : TypedResults.Json(ApiResponse<TokenResponseDto>
+                .Failure(result.Message!, null),statusCode: StatusCodes.Status401Unauthorized);
         }
 
         private static async Task<
